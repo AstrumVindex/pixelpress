@@ -1,0 +1,191 @@
+One-Page Professional Image Compressor (Multi-Purpose Tool)
+
+Prompt:
+
+Build a modern, high-performance, one-page Image Compressor web application designed for general-purpose image compression, with optional presets for popular platforms.
+
+The tool must feel fast, professional, privacy-first, and production-ready, comparable to premium online image compression tools.
+
+🎯 Core Purpose
+
+Allow users to compress, resize, and optimize images for:
+
+Websites
+
+Documents
+
+Email
+
+Social media
+
+Messaging apps
+
+Presets for platforms like WhatsApp and Instagram should be optional, not the main focus.
+
+⚙️ Core Features
+
+Drag & drop image upload + file picker
+
+Support JPG, PNG, WEBP
+
+Multiple compression presets:
+
+🌐 Web (balanced quality & size)
+
+📱 Social Media
+
+📄 Documents
+
+📧 Email
+
+📱 WhatsApp (optional)
+
+📸 Instagram Post / Story (optional)
+
+⚙️ Custom compression
+
+Live preview before download
+
+Display:
+
+Original size
+
+Final size
+
+Percentage reduced
+
+Instant download button
+
+📐 Advanced Image Controls
+
+Aspect ratio lock / unlock
+
+Resize by:
+
+Width (example: 1920px)
+
+Height
+
+Maintain visual clarity during resizing
+
+🔐 Privacy & Security
+
+Metadata (EXIF) stripping enabled by default
+
+Remove GPS location, camera details, timestamps
+
+All processing must be 100% client-side
+
+Images must never be uploaded to any server
+
+🚀 Performance Enhancements
+
+Implement Web Workers for multi-threading
+
+Add OffscreenCanvas support where available
+
+Ensure UI never freezes during large or bulk image compression
+
+Optimize for fast load and smooth interaction
+
+📱 Progressive Web App (PWA)
+
+Add PWA support with:
+
+Web app manifest
+
+Service worker
+
+Allow users to install the app on desktop or mobile
+
+Enable offline usage after first load
+
+🧱 Page Layout (ONE PAGE ONLY)
+1. Hero Section
+
+Headline: “Compress & Optimize Images Without Losing Quality”
+
+Subheading: Fast, private, and browser-based image compression
+
+Large upload box visible immediately (no scrolling)
+
+2. Image Tool Section
+
+Upload area
+
+Preset selector dropdown or buttons
+
+Compression strength slider
+
+Resize & aspect ratio controls
+
+Compress button
+
+3. Results Section
+
+Before / after preview
+
+Size comparison
+
+Download button
+
+4. Benefits Section
+
+No signup required
+
+100% browser-based
+
+Works on mobile & desktop
+
+Free to use
+
+5. FAQ
+
+Is this tool free?
+
+Are my images uploaded?
+
+Does compression reduce quality?
+
+6. Footer
+
+Privacy Policy
+
+Terms of Service
+
+🎨 Design Requirements (VERY IMPORTANT)
+
+Clean, minimalist, tool-first UI
+
+Compact layout (no unnecessary whitespace)
+
+Tool must be visible immediately on page load
+
+Rounded cards, subtle shadows
+
+Mobile-first responsive design
+
+Smooth micro-animations
+
+🛠️ Technical Requirements
+
+Use HTML, CSS, JavaScript
+
+Canvas-based client-side image processing
+
+No backend or database
+
+Optimized for performance and stability
+
+🔍 SEO & Monetization Ready
+
+SEO-friendly heading structure
+
+Title: Online Image Compressor & Optimizer
+
+Meta description included
+
+Reserve space for Google AdSense (do not enable ads yet)
+
+The website should feel like a professional online utility tool, not a blog.
+Keep text minimal, clear, and action-focused.
