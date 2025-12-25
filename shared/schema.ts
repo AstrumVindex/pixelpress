@@ -1,18 +1,53 @@
-import { sql } from "drizzle-orm";
-import { pgTable, text, varchar } from "drizzle-orm/pg-core";
-import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-export const users = pgTable("users", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  username: text("username").notNull().unique(),
-  password: text("password").notNull(),
+// We don't need a database table for a client-side only app, 
+// but we'll use Zod schemas to define our application state and configuration types.
+
+export const compressionFormatSchema = z.enum(["image/jpeg", "image/png", "image/webp"]);
+
+export const compressionSettingsSchema = z.object({
+  quality: z.number().min(0).max(100).default(80),
+  format: compressionFormatSchema.default("image/jpeg"),
+  width: z.number().optional(),
+  height: z.number().optional(),
+  maintainAspectRatio: z.boolean().default(true),
+  stripMetadata: z.boolean().default(true),
 });
 
-export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
-  password: true,
+export const imageFileSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  originalSize: z.number(),
+  compressedSize: z.number().optional(),
+  originalUrl: z.string(),
+  compressedUrl: z.string().optional(),
+  status: z.enum(["pending", "processing", "completed", "error"]).default("pending"),
+  error: z.string().optional(),
 });
 
-export type InsertUser = z.infer<typeof insertUserSchema>;
-export type User = typeof users.$inferSelect;
+export type CompressionFormat = z.infer<typeof compressionFormatSchema>;
+export type CompressionSettings = z.infer<typeof compressionSettingsSchema>;
+export type ImageFile = z.infer<typeof imageFileSchema>;
+
+export const PRESETS = [
+  { 
+    id: "web", 
+    name: "Web (Balanced)", 
+    settings: { quality: 80, format: "image/webp", maintainAspectRatio: true, stripMetadata: true } 
+  },
+  { 
+    id: "social", 
+    name: "Social Media", 
+    settings: { quality: 90, format: "image/jpeg", maintainAspectRatio: true, stripMetadata: true } 
+  },
+  { 
+    id: "documents", 
+    name: "Documents", 
+    settings: { quality: 70, format: "image/jpeg", maintainAspectRatio: true, stripMetadata: true } 
+  },
+  { 
+    id: "email", 
+    name: "Email", 
+    settings: { quality: 60, format: "image/jpeg", maintainAspectRatio: true, stripMetadata: true } 
+  }
+] as const;
