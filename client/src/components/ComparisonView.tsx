@@ -66,24 +66,25 @@ export function ComparisonView({
       </div>
 
       {/* Comparison Slider */}
-      <div className="relative w-full aspect-[4/3] md:aspect-video rounded-3xl overflow-hidden shadow-2xl shadow-black/10 select-none group border border-border">
+      <div className="relative w-full aspect-[4/3] md:aspect-video rounded-3xl overflow-hidden shadow-2xl shadow-black/10 select-none group border border-border bg-white">
         {/* Compressed Image (Background) */}
         <img 
           src={compressedUrl} 
           alt="Compressed" 
-          className="absolute inset-0 w-full h-full object-contain"
+          className="absolute inset-0 w-full h-full object-contain bg-white"
         />
         <Badge className="absolute top-4 right-4 z-10 bg-primary/90 hover:bg-primary pointer-events-none">Compressed</Badge>
 
-        {/* Original Image (Clipped by slider position) */}
+        {/* Original Image (Width-clipped container) */}
         <div 
-          className="absolute inset-0 overflow-hidden"
-          style={{ clipPath: `inset(0 ${100 - sliderPosition}% 0 0)` }}
+          className="absolute inset-y-0 left-0 overflow-hidden"
+          style={{ width: `${sliderPosition}%` }}
         >
           <img 
             src={originalUrl} 
             alt="Original" 
-            className="w-full h-full object-contain"
+            className="absolute inset-0 w-full h-full object-contain bg-white"
+            style={{ width: '100%', maxWidth: 'none' }}
           />
           <Badge className="absolute top-4 left-4 z-10 bg-black/50 hover:bg-black/70 backdrop-blur-md pointer-events-none text-white border-0">Original</Badge>
         </div>
