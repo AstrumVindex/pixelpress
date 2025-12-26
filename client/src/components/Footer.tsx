@@ -1,4 +1,5 @@
 import { ShieldCheck, Heart } from "lucide-react";
+import { Link } from "wouter";
 
 export function Footer() {
   return (
@@ -18,7 +19,7 @@ export function Footer() {
           <div>
             <h4 className="font-semibold mb-4">Product</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li><a href="#" className="hover:text-primary transition-colors">Image Compressor</a></li>
+              <li><Link href="/"><a className="hover:text-primary transition-colors">Image Compressor</a></Link></li>
               <li><a href="#" className="hover:text-primary transition-colors">Format Converter</a></li>
               <li><a href="#" className="hover:text-primary transition-colors">Bulk Resize</a></li>
             </ul>
@@ -27,8 +28,8 @@ export function Footer() {
           <div>
             <h4 className="font-semibold mb-4">Legal</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li><a href="#" className="hover:text-primary transition-colors">Privacy Policy</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors">Terms of Service</a></li>
+              <li><Link href="/privacy"><a className="hover:text-primary transition-colors">Privacy Policy</a></Link></li>
+              <li><Link href="/terms"><a className="hover:text-primary transition-colors">Terms of Service</a></Link></li>
             </ul>
           </div>
         </div>

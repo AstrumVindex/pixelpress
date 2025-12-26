@@ -1,0 +1,176 @@
+Create a Privacy Policy page for a website named PixelPress.
+
+PixelPress is a browser-based image compression tool where:
+
+All image processing happens entirely in the user’s browser
+
+No images are uploaded to any server
+
+No images are stored, collected, or shared
+
+The Privacy Policy should be:
+
+Clear, professional, and easy to understand
+
+Written for a general audience (non-technical)
+
+Suitable for Google AdSense approval
+
+Include the following sections:
+1. Introduction
+
+Explain what PixelPress is and the purpose of the Privacy Policy.
+
+2. Information We Do NOT Collect
+
+Clearly state that:
+
+Uploaded images never leave the user’s device
+
+No personal files are uploaded or stored
+
+No image content is collected or analyzed on servers
+
+3. Information We May Collect
+
+Mention limited non-personal data such as:
+
+Anonymous usage analytics
+
+Browser type, device type (if applicable)
+
+Cookies for basic functionality (if used)
+
+4. How We Use Information
+
+Explain that any collected data is used only to:
+
+Improve performance
+
+Fix bugs
+
+Enhance user experience
+
+5. Cookies
+
+Explain cookie usage in simple terms.
+
+6. Third-Party Services
+
+Mention that third-party services like:
+
+Google AdSense
+
+Analytics tools
+may use cookies according to their own policies.
+
+7. Data Security
+
+Emphasize:
+
+Client-side processing
+
+No server uploads
+
+Strong focus on privacy
+
+8. Children’s Information
+
+State that PixelPress does not knowingly collect data from children under 13.
+
+9. Changes to This Policy
+
+Explain that the policy may be updated occasionally.
+
+10. Contact Information
+
+Provide a generic contact line (no real email required).
+
+Use a clean, legal-style format with headings and short paragraphs.
+Do not include any backend-related language.
+
+📜 TERMS OF SERVICE — REPLIT AI PROMPT
+
+Copy–paste this:
+
+Create a Terms of Service page for a website called PixelPress.
+
+PixelPress is a free, browser-based image compression and optimization tool.
+
+The Terms should be:
+
+Professional but easy to read
+
+Short and clear
+
+Suitable for a small SaaS / utility website
+
+Include the following sections:
+1. Acceptance of Terms
+
+Explain that by using PixelPress, users agree to these terms.
+
+2. Description of Service
+
+Explain that PixelPress:
+
+Compresses images locally in the browser
+
+Does not upload files to servers
+
+Is provided “as is”
+
+3. User Responsibilities
+
+State that users:
+
+Must own or have rights to the images they upload
+
+Are responsible for how they use the compressed images
+
+4. Intellectual Property
+
+Clarify that:
+
+PixelPress branding, UI, and code are owned by PixelPress
+
+Users retain full ownership of their images
+
+5. Prohibited Use
+
+Mention that users must not:
+
+Use the service for illegal purposes
+
+Attempt to break or abuse the system
+
+6. Disclaimer of Warranties
+
+State that:
+
+The service is provided without guarantees
+
+Results may vary depending on image type
+
+7. Limitation of Liability
+
+Explain that PixelPress is not responsible for:
+
+Data loss
+
+Image quality decisions made by users
+
+8. Changes to the Service
+
+Mention that features may be updated or removed at any time.
+
+9. Termination
+
+Reserve the right to restrict access if terms are violated.
+
+10. Governing Law
+
+Use a neutral statement such as “applicable laws”.
+
+Keep the tone professional, neutral, and SaaS-style.
+Do not mention any server-side image storage.
