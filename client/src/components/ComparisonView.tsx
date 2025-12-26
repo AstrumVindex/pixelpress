@@ -68,48 +68,24 @@ export function ComparisonView({
       {/* Comparison Slider */}
       <div className="relative w-full aspect-[4/3] md:aspect-video rounded-3xl overflow-hidden shadow-2xl shadow-black/10 select-none group border border-border">
         {/* Compressed Image (Background) */}
-        <div className="absolute inset-0 bg-checkered">
-           <img 
-            src={compressedUrl} 
-            alt="Compressed" 
-            className="w-full h-full object-contain"
-          />
-          <Badge className="absolute top-4 right-4 z-10 bg-primary/90 hover:bg-primary pointer-events-none">Compressed</Badge>
-        </div>
+        <img 
+          src={compressedUrl} 
+          alt="Compressed" 
+          className="absolute inset-0 w-full h-full object-contain"
+        />
+        <Badge className="absolute top-4 right-4 z-10 bg-primary/90 hover:bg-primary pointer-events-none">Compressed</Badge>
 
-        {/* Original Image (Foreground / Clipped) */}
+        {/* Original Image (Clipped by slider position) */}
         <div 
-          className="absolute inset-0 overflow-hidden bg-checkered border-r-2 border-white shadow-xl"
-          style={{ width: `${sliderPosition}%` }}
+          className="absolute inset-0 overflow-hidden"
+          style={{ clipPath: `inset(0 ${100 - sliderPosition}% 0 0)` }}
         >
           <img 
             src={originalUrl} 
             alt="Original" 
-            className="w-full h-full object-contain object-left"
-            style={{ width: `${10000/sliderPosition}%`, maxWidth: 'none' }} 
-            // This trick keeps the image static while container resizes
-            // But simpler is to use object-cover/contain relative to full width
-          />
-          {/* We need the inner image to NOT shrink. It should be full width. */}
-          <div className="absolute inset-0 w-screen max-w-none h-full">
-             {/* This is complex with responsive sizing. 
-                 Simpler approach: Use a library or simpler CSS clip-path manually.
-                 Let's stick to the simpler width container approach but set image width to parent container width.
-             */}
-          </div>
-          <Badge className="absolute top-4 left-4 z-10 bg-black/50 hover:bg-black/70 backdrop-blur-md pointer-events-none text-white border-0">Original</Badge>
-        </div>
-
-        {/* Correct Implementation of Slider Image Logic */}
-        <div 
-            className="absolute inset-0 overflow-hidden"
-            style={{ clipPath: `inset(0 ${100 - sliderPosition}% 0 0)` }}
-        >
-           <img 
-            src={originalUrl} 
-            alt="Original" 
             className="w-full h-full object-contain"
           />
+          <Badge className="absolute top-4 left-4 z-10 bg-black/50 hover:bg-black/70 backdrop-blur-md pointer-events-none text-white border-0">Original</Badge>
         </div>
 
         {/* Slider Handle */}
