@@ -9,37 +9,53 @@ import { useToast } from "@/hooks/use-toast";
 
 /**
  * Detects if an image is text-like (documents, screenshots, handwriting)
- * by analyzing pixel data for low color variance and sharp edges.
+ * by analyzing pixel data for low color variance, sharp edges, and white areas.
  */
 function isTextLikeImage(imageData: ImageData): boolean {
   const data = imageData.data;
   const width = imageData.width;
   const height = imageData.height;
   
-  // Sample every 4th pixel for performance
   let colorVariance = 0;
+  let edgeCount = 0;
+  let whiteAreaRatio = 0;
   let samples = 0;
-  const sampleSize = 4;
   
-  for (let i = 0; i < data.length; i += sampleSize * 4) {
-    const r1 = data[i];
-    const g1 = data[i + 1];
-    const b1 = data[i + 2];
+  // Analyze color variance and edge sharpness
+  for (let i = 0; i < data.length; i += 4) {
+    const r = data[i];
+    const g = data[i + 1];
+    const b = data[i + 2];
     
-    if (i + sampleSize * 4 < data.length) {
-      const r2 = data[i + sampleSize * 4];
-      const g2 = data[i + sampleSize * 4 + 1];
-      const b2 = data[i + sampleSize * 4 + 2];
+    // Count white/near-white areas (common in documents)
+    if (r > 240 && g > 240 && b > 240) {
+      whiteAreaRatio++;
+    }
+    
+    samples++;
+    
+    // Sample variance with next pixel
+    if (i + 4 < data.length) {
+      const r2 = data[i + 4];
+      const g2 = data[i + 5];
+      const b2 = data[i + 6];
       
-      const diff = Math.abs(r1 - r2) + Math.abs(g1 - g2) + Math.abs(b1 - b2);
+      const diff = Math.abs(r - r2) + Math.abs(g - g2) + Math.abs(b - b2);
       colorVariance += diff;
-      samples++;
+      
+      // High contrast = edge (common in text)
+      if (diff > 100) {
+        edgeCount++;
+      }
     }
   }
   
-  // Low color variance = text/document-like
-  const avgVariance = colorVariance / Math.max(samples, 1);
-  return avgVariance < 50; // Conservative threshold
+  const avgVariance = colorVariance / Math.max(samples - 1, 1);
+  const whiteRatio = whiteAreaRatio / Math.max(samples, 1);
+  const edgeRatio = edgeCount / Math.max(samples - 1, 1);
+  
+  // Text-like if: low variance AND (many white areas OR many edges)
+  return avgVariance < 80 && (whiteRatio > 0.3 || edgeRatio > 0.15);
 }
 
 /**
@@ -214,54 +230,79 @@ export function useImageCompressor() {
       setProgress(20);
 
       // Map quality with non-linear curve
-      const mappedQuality = mapQuality(settings.quality);
+      let mappedQuality = mapQuality(settings.quality);
       
-      // Boost quality for text-like images
-      const finalQuality = isText ? Math.max(mappedQuality, 0.85) : mappedQuality;
+      // CRITICAL: Enforce minimum quality thresholds
+      if (isText) {
+        // Text/documents: never below 0.80 (80%)
+        mappedQuality = Math.max(mappedQuality, 0.80);
+      } else {
+        // Photos: never below 0.70 (70%)
+        mappedQuality = Math.max(mappedQuality, 0.70);
+      }
       
-      // Select best format
+      const finalQuality = mappedQuality;
+      
+      // Select best format - text MUST use PNG (lossless)
       const bestFormat = selectFormat(isText, settings.format, hasTransparency);
       
       setProgress(30);
 
-      // Compress using browser-image-compression
-      const options = {
-        maxSizeMB: 50,
-        maxWidthOrHeight: settings.width || undefined,
-        useWebWorker: true,
-        initialQuality: finalQuality,
-        fileType: bestFormat,
-        onProgress: (p: number) => setProgress(Math.round(30 + (p * 0.6))), // 30-90%
-      };
-
-      let compressed = await imageCompression(originalFile, options);
-      
-      setProgress(90);
-
-      // If result is still large and is text-like, try PNG as fallback
-      if (isText && compressed.size > originalFile.size * 0.5) {
-        const pngOptions = {
+      // For text images, always use PNG lossless
+      if (isText && bestFormat === "image/png") {
+        const textOptions = {
           maxSizeMB: 50,
           maxWidthOrHeight: settings.width || undefined,
           useWebWorker: true,
-          initialQuality: 1.0, // Lossless for text
+          initialQuality: 1.0, // Lossless PNG for text
           fileType: "image/png",
+          onProgress: (p: number) => setProgress(Math.round(30 + (p * 0.6))),
         };
-        const pngCompressed = await imageCompression(originalFile, pngOptions);
         
-        // Use PNG if it's smaller
-        if (pngCompressed.size < compressed.size) {
-          compressed = pngCompressed;
+        const compressed = await imageCompression(originalFile, textOptions);
+        setCompressedFile(compressed);
+        
+        if (previewUrl) URL.revokeObjectURL(previewUrl);
+        setPreviewUrl(URL.createObjectURL(compressed));
+        setProgress(100);
+      } else {
+        // For photos, use quality-based compression
+        const options = {
+          maxSizeMB: 50,
+          maxWidthOrHeight: settings.width || undefined,
+          useWebWorker: true,
+          initialQuality: finalQuality,
+          fileType: bestFormat,
+          onProgress: (p: number) => setProgress(Math.round(30 + (p * 0.6))), // 30-90%
+        };
+
+        let compressed = await imageCompression(originalFile, options);
+        
+        setProgress(90);
+
+        // Fallback: if still large, try WebP lossless for photos
+        if (!isText && compressed.size > originalFile.size * 0.7) {
+          const webpOptions = {
+            maxSizeMB: 50,
+            maxWidthOrHeight: settings.width || undefined,
+            useWebWorker: true,
+            initialQuality: 0.95, // Near-lossless
+            fileType: "image/webp",
+          };
+          const webpCompressed = await imageCompression(originalFile, webpOptions);
+          
+          if (webpCompressed.size < compressed.size) {
+            compressed = webpCompressed;
+          }
         }
+        
+        setCompressedFile(compressed);
+        
+        if (previewUrl) URL.revokeObjectURL(previewUrl);
+        setPreviewUrl(URL.createObjectURL(compressed));
+        
+        setProgress(100);
       }
-      
-      setCompressedFile(compressed);
-      
-      // Cleanup old preview
-      if (previewUrl) URL.revokeObjectURL(previewUrl);
-      setPreviewUrl(URL.createObjectURL(compressed));
-      
-      setProgress(100);
     } catch (error) {
       console.error("Compression error:", error);
       toast({

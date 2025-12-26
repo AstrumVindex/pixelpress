@@ -1,0 +1,90 @@
+There is a serious quality degradation bug in my image compression logic.
+
+Problem description:
+When compressing document / text-heavy images (forms, Aadhaar documents, handwriting, screenshots), my output image breaks into visible pixels and blocky artifacts, while other professional compressors reduce file size without destroying text clarity.
+
+This happens even at moderate compression levels and makes text unreadable.
+
+Root cause (likely):
+
+Treating text/doc images the same as photos
+
+Forcing JPEG compression
+
+Allowing ultra-low quality values
+
+Linear quality mapping
+
+No image-type detection
+
+Expected professional behavior (must match):
+
+Text and document images must stay sharp and readable
+
+Edges must be preserved
+
+Compression should prioritize clarity over size
+
+REQUIRED FIXES (DO NOT CHANGE UI)
+1. Detect Text / Document Images
+
+Analyze the image for:
+
+Low color variance
+
+High contrast edges
+
+Large white areas
+
+If detected, mark as isTextLikeImage = true.
+
+2. Force Lossless or Near-Lossless Compression for Text
+
+If isTextLikeImage:
+
+DO NOT use JPEG
+
+Use PNG or WebP (lossless)
+
+Set quality to 1.0
+
+3. Prevent Destructive Quality Values
+
+Never allow JPEG quality below 0.7, even if user selects lower.
+
+4. Use Non-Linear Quality Mapping
+
+Avoid linear slider → quality mapping.
+
+Example:
+
+quality = 0.7 + (sliderValue / 100) * 0.25;
+
+5. Resize Before Compression
+
+Always resize first, then compress.
+
+Enable:
+
+ctx.imageSmoothingEnabled = true;
+ctx.imageSmoothingQuality = "high";
+
+6. Automatic Format Selection (Mandatory)
+Image Type	Format
+Document / Text	PNG or WebP (lossless)
+Screenshots	WebP (high quality)
+Photos	WebP (lossy)
+
+Never force JPEG for all images.
+
+7. Quality Validation
+
+If compressed output reduces text readability:
+
+Increase quality automatically
+
+Or switch to lossless format
+
+The compression logic must behave like TinyPNG or Squoosh, where text clarity is protected and images do NOT break into visible pixel blocks.
+
+Update only the compression logic and output the improved implementation.
