@@ -32,22 +32,22 @@ export type ImageFile = z.infer<typeof imageFileSchema>;
 export const PRESETS = [
   { 
     id: "web", 
-    name: "Web (Balanced)", 
-    settings: { quality: 80, format: "image/webp", maintainAspectRatio: true, stripMetadata: true } 
+    name: "Safe (Recommended)", 
+    settings: { quality: 85, format: "image/webp", maintainAspectRatio: true, stripMetadata: true } 
   },
   { 
     id: "social", 
-    name: "Social Media", 
-    settings: { quality: 90, format: "image/jpeg", maintainAspectRatio: true, stripMetadata: true } 
+    name: "Balanced", 
+    settings: { quality: 75, format: "image/webp", maintainAspectRatio: true, stripMetadata: true } 
   },
   { 
     id: "documents", 
-    name: "Documents", 
-    settings: { quality: 70, format: "image/jpeg", maintainAspectRatio: true, stripMetadata: true } 
+    name: "Aggressive", 
+    settings: { quality: 65, format: "image/webp", maintainAspectRatio: true, stripMetadata: true } 
   },
   { 
     id: "email", 
-    name: "Email", 
-    settings: { quality: 60, format: "image/jpeg", maintainAspectRatio: true, stripMetadata: true } 
+    name: "Maximum", 
+    settings: { quality: 50, format: "image/jpeg", maintainAspectRatio: true, stripMetadata: true } 
   }
 ] as const;

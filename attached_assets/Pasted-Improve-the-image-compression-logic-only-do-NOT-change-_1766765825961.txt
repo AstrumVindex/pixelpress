@@ -1,0 +1,133 @@
+Improve the image compression logic only (do NOT change UI or layout).
+
+The goal is to reduce file size while preserving visual clarity, especially for text, handwriting, documents, and screenshots.
+
+🧠 Smart Compression Logic
+1. Quality Safety Clamp
+
+Never allow compression quality below 0.6 (60%) by default
+
+Even if the user selects a lower value, internally clamp it
+
+const MIN_QUALITY = 0.6;
+quality = Math.max(userQuality, MIN_QUALITY);
+
+2. Non-Linear Quality Mapping
+
+Do NOT map slider values linearly
+
+Use a smart curve so low slider values do not destroy quality
+
+function mapQuality(slider) {
+  return 0.6 + (slider / 100) * 0.35;
+}
+
+3. Image Type Detection (Critical)
+
+Analyze the image to detect:
+
+Text / handwriting
+
+Documents
+
+Screenshots
+
+Indicators:
+
+Low color variance
+
+Large white areas
+
+Sharp edges
+
+If image is text-like:
+
+Force lossless format
+
+Disable aggressive compression
+
+if (isTextLikeImage) {
+  format = 'image/png';
+  quality = 1.0;
+}
+
+4. Automatic Format Selection
+Image Type	Format
+Photos	WebP (lossy)
+Text / Documents	PNG or WebP (lossless)
+Transparent images	WebP
+
+Never force JPEG for all images.
+
+5. Resize Before Compress
+
+Always resize first
+
+Then draw onto canvas
+
+Then compress
+
+Enable high-quality scaling:
+
+ctx.imageSmoothingEnabled = true;
+ctx.imageSmoothingQuality = 'high';
+
+6. Metadata Stripping (Safe)
+
+Strip EXIF metadata by default
+
+Do NOT affect pixel quality
+
+7. Safe Presets (User-Friendly)
+
+Implement presets with internally protected values:
+
+Safe (Recommended)
+Quality: 0.8–0.9
+Best for text & documents
+
+Balanced
+Quality: 0.7–0.8
+Best for web & social media
+
+Aggressive (Advanced)
+Quality: 0.6–0.7
+Warn user about possible quality loss
+
+8. Text Protection Mode
+
+Add an internal mode:
+
+Preserves edges and contrast
+
+Prevents blur in handwriting
+
+Locks minimum resolution
+
+🚀 Performance Rules
+
+Use Web Workers for compression
+
+Use OffscreenCanvas when available
+
+Prevent UI freezing during large or bulk operations
+
+🧪 Quality Validation
+
+If compressed image loses readability:
+
+Automatically increase quality
+
+Or switch to lossless format
+
+🛑 Do NOT:
+
+Do not use ultra-low JPEG quality
+
+Do not resize aggressively by default
+
+Do not degrade text clarity
+
+The compression logic should behave like TinyPNG / Squoosh, prioritizing clarity first, size second.
+
+Output only the improved logic implementation and integrate it with existing code.
