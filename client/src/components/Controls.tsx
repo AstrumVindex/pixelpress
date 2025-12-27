@@ -49,7 +49,7 @@ export function Controls({ settings, onChange }: ControlsProps) {
                   className="flex flex-col items-center gap-1.5 py-3 rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all"
                 >
                   <Icon className="w-4 h-4" />
-                  <span className="text-[10px] font-medium">{preset.name}</span>
+                  <span className="text-[9px] font-medium whitespace-nowrap">{preset.name}</span>
                 </TabsTrigger>
               );
             })}
