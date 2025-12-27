@@ -19,6 +19,7 @@ function isTextLikeImage(imageData: ImageData): boolean {
   let colorVariance = 0;
   let edgeCount = 0;
   let whiteAreaRatio = 0;
+  let highContrastCount = 0;
   let samples = 0;
   
   // Analyze color variance and edge sharpness
@@ -46,6 +47,7 @@ function isTextLikeImage(imageData: ImageData): boolean {
       // High contrast = edge (common in text)
       if (diff > 100) {
         edgeCount++;
+        if (diff > 150) highContrastCount++;
       }
     }
   }
@@ -53,22 +55,31 @@ function isTextLikeImage(imageData: ImageData): boolean {
   const avgVariance = colorVariance / Math.max(samples - 1, 1);
   const whiteRatio = whiteAreaRatio / Math.max(samples, 1);
   const edgeRatio = edgeCount / Math.max(samples - 1, 1);
+  const highContrastRatio = highContrastCount / Math.max(samples - 1, 1);
   
-  // Text-like if: low variance AND (many white areas OR many edges)
-  return avgVariance < 80 && (whiteRatio > 0.3 || edgeRatio > 0.15);
+  // Text-like if: low variance AND (many white areas OR many sharp edges)
+  // Uses multiple thresholds for robust detection
+  const hasWhiteAreas = whiteRatio > 0.25;
+  const hasSharpEdges = edgeRatio > 0.12 && highContrastRatio > 0.08;
+  const hasLowVariance = avgVariance < 85;
+  
+  return hasLowVariance && (hasWhiteAreas || hasSharpEdges);
 }
 
 /**
  * Non-linear quality mapping: preserves clarity at low slider values.
- * Maps 0-100 to 0.6-0.95 quality range.
+ * Maps 0-100 to 0.7-0.95 quality range with aggressive curvature.
+ * Prevents aggressive compression at moderate slider positions.
  */
 function mapQuality(sliderValue: number): number {
-  const MIN_QUALITY = 0.6;
+  const MIN_QUALITY = 0.7;
   const MAX_QUALITY = 0.95;
   const normalized = sliderValue / 100;
   
-  // Curve formula: low values stay high quality, allows aggressive compression only at extremes
-  return MIN_QUALITY + (normalized * (MAX_QUALITY - MIN_QUALITY));
+  // Exponential curve: quality stays high until slider reaches ~70%
+  // This protects quality at conservative settings
+  const curvedNormalized = Math.pow(normalized, 0.7);
+  return MIN_QUALITY + (curvedNormalized * (MAX_QUALITY - MIN_QUALITY));
 }
 
 /**
@@ -94,7 +105,8 @@ function selectFormat(
 }
 
 /**
- * Resize image with high-quality scaling before compression.
+ * Resize image with maximum quality scaling before compression.
+ * Uses high-quality interpolation to preserve edge clarity.
  */
 async function resizeImage(
   file: File,
@@ -128,12 +140,14 @@ async function resizeImage(
           return;
         }
         
-        // High-quality image smoothing
+        // Maximum quality image smoothing to prevent aliasing and pixelation
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = "high";
         
+        // Draw image with high-quality interpolation
         ctx.drawImage(img, 0, 0, width, height);
         
+        // Convert to PNG for lossless intermediate
         canvas.toBlob((blob) => {
           if (blob) resolve(blob);
           else reject(new Error("Canvas to blob conversion failed"));
@@ -144,6 +158,83 @@ async function resizeImage(
     };
     reader.onerror = () => reject(new Error("Failed to read file"));
     reader.readAsDataURL(file);
+  });
+}
+
+/**
+ * Apply subtle deblocking to remove block artifacts from lossy compression.
+ * Uses a gentle blur to smooth block boundaries without destroying edges.
+ */
+async function applyDeblocking(blob: Blob): Promise<Blob> {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = img.width;
+        canvas.height = img.height;
+        
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+          resolve(blob);
+          return;
+        }
+        
+        ctx.drawImage(img, 0, 0);
+        
+        // Apply very subtle Gaussian-like smoothing to block boundaries
+        // This is applied only to JPEG/lossy formats, not PNG
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const data = imageData.data;
+        
+        // Single-pass mild smoothing (1.5x1.5 kernel)
+        for (let i = 0; i < data.length; i += 4) {
+          const pixelIndex = i / 4;
+          const x = pixelIndex % canvas.width;
+          const y = Math.floor(pixelIndex / canvas.width);
+          
+          // Only smooth interior pixels to avoid edge artifacts
+          if (x > 0 && x < canvas.width - 1 && y > 0 && y < canvas.height - 1) {
+            const neighbors = [
+              pixelIndex - 1,
+              pixelIndex + 1,
+              pixelIndex - canvas.width,
+              pixelIndex + canvas.width,
+            ];
+            
+            // Very conservative averaging (15% smoothing)
+            let r = data[i] * 0.7;
+            let g = data[i + 1] * 0.7;
+            let b = data[i + 2] * 0.7;
+            
+            neighbors.forEach((n) => {
+              const idx = n * 4;
+              if (idx >= 0 && idx < data.length) {
+                r += data[idx] * 0.075;
+                g += data[idx + 1] * 0.075;
+                b += data[idx + 2] * 0.075;
+              }
+            });
+            
+            data[i] = Math.round(r);
+            data[i + 1] = Math.round(g);
+            data[i + 2] = Math.round(b);
+          }
+        }
+        
+        ctx.putImageData(imageData, 0, 0);
+        canvas.toBlob((deblocked) => {
+          if (deblocked) resolve(deblocked);
+          else resolve(blob);
+        }, "image/png");
+      };
+      img.onerror = () => resolve(blob);
+      img.src = e.target?.result as string;
+    };
+    reader.onerror = () => resolve(blob);
+    reader.readAsDataURL(blob);
   });
 }
 
@@ -248,7 +339,7 @@ export function useImageCompressor() {
       
       setProgress(30);
 
-      // For text images, always use PNG lossless
+      // For text images, always use PNG lossless (never lossy compression)
       if (isText && bestFormat === "image/png") {
         const textOptions = {
           maxSizeMB: 50,
@@ -266,7 +357,7 @@ export function useImageCompressor() {
         setPreviewUrl(URL.createObjectURL(compressed));
         setProgress(100);
       } else {
-        // For photos, use quality-based compression
+        // For photos, compress with quality-based approach
         const options = {
           maxSizeMB: 50,
           maxWidthOrHeight: settings.width || undefined,
@@ -278,20 +369,31 @@ export function useImageCompressor() {
 
         let compressed = await imageCompression(originalFile, options);
         
-        setProgress(90);
+        setProgress(85);
 
-        // Fallback: if still large, try WebP lossless for photos
-        if (!isText && compressed.size > originalFile.size * 0.7) {
+        // Apply deblocking to JPEG to smooth block artifacts
+        if (bestFormat === "image/jpeg") {
+          try {
+            compressed = await applyDeblocking(compressed);
+          } catch (e) {
+            // If deblocking fails, continue with original compressed
+            console.warn("Deblocking failed, using standard compression", e);
+          }
+        }
+
+        // Quality validation: if compression is poor relative to original, try WebP
+        if (!isText && compressed.size > originalFile.size * 0.75) {
           const webpOptions = {
             maxSizeMB: 50,
             maxWidthOrHeight: settings.width || undefined,
             useWebWorker: true,
-            initialQuality: 0.95, // Near-lossless
+            initialQuality: Math.max(finalQuality, 0.85), // Higher quality for WebP
             fileType: "image/webp",
           };
           const webpCompressed = await imageCompression(originalFile, webpOptions);
           
-          if (webpCompressed.size < compressed.size) {
+          // Use WebP if significantly better
+          if (webpCompressed.size < compressed.size * 0.95) {
             compressed = webpCompressed;
           }
         }

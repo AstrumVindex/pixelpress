@@ -1,0 +1,101 @@
+Improve the image resizing and compression logic to ensure that image quality does NOT break into visible pixels or block artifacts after resizing.
+
+The current issue:
+
+After resizing (downscaling), the image loses sharpness
+
+Text and edges break into pixel blocks
+
+Quality drop is too aggressive
+
+The goal:
+
+Resize images smoothly
+
+Preserve edges and text clarity
+
+Reduce file size without destroying visual structure
+
+REQUIRED LOGIC CHANGES (DO NOT CHANGE UI)
+1. Resize First, Compress Second (Mandatory)
+
+Always perform resizing before compression
+
+Never compress → then resize
+
+2. High-Quality Canvas Resizing
+
+Use maximum quality when drawing resized images:
+
+ctx.imageSmoothingEnabled = true;
+ctx.imageSmoothingQuality = "high";
+
+
+Use proper scaling to avoid aliasing.
+
+3. Safe Quality Floor (Critical)
+
+Never allow compression quality below 0.7
+
+Clamp internally even if user selects lower
+
+const MIN_QUALITY = 0.7;
+quality = Math.max(userQuality, MIN_QUALITY);
+
+4. Non-Linear Quality Mapping
+
+Avoid linear mapping that destroys quality.
+
+function mapQuality(sliderValue) {
+  return 0.7 + (sliderValue / 100) * 0.25;
+}
+
+5. Text & Edge Protection
+
+Detect images with:
+
+Sharp edges
+
+Low color variance
+
+Large white areas
+
+If detected:
+
+Avoid aggressive compression
+
+Prefer lossless or near-lossless output
+
+6. Smart Format Selection
+Image Type	Output Format
+Text / Documents	PNG or WebP (lossless)
+Screenshots	WebP (high quality)
+Photos	WebP (lossy)
+
+Do NOT force JPEG for all images.
+
+7. Prevent Pixel Block Artifacts
+
+Apply mild deblocking / smoothing after compression
+
+Do not over-sharpen
+
+Do not create halos
+
+8. Quality Validation Pass
+
+After compression:
+
+Check if readability or edges degraded
+
+If so, automatically increase quality or switch to lossless
+
+The final output must look similar to professional tools (TinyPNG, Squoosh) where:
+
+Text remains readable
+
+Edges stay smooth
+
+File size is reduced safely
+
+Output only the updated compression logic and integrate it into the existing codebase.
