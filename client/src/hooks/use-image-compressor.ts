@@ -161,82 +161,6 @@ async function resizeImage(
   });
 }
 
-/**
- * Apply subtle deblocking to remove block artifacts from lossy compression.
- * Uses a gentle blur to smooth block boundaries without destroying edges.
- */
-async function applyDeblocking(blob: Blob): Promise<Blob> {
-  return new Promise((resolve) => {
-    const reader = new FileReader();
-    
-    reader.onload = (e) => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement("canvas");
-        canvas.width = img.width;
-        canvas.height = img.height;
-        
-        const ctx = canvas.getContext("2d");
-        if (!ctx) {
-          resolve(blob);
-          return;
-        }
-        
-        ctx.drawImage(img, 0, 0);
-        
-        // Apply very subtle Gaussian-like smoothing to block boundaries
-        // This is applied only to JPEG/lossy formats, not PNG
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const data = imageData.data;
-        
-        // Single-pass mild smoothing (1.5x1.5 kernel)
-        for (let i = 0; i < data.length; i += 4) {
-          const pixelIndex = i / 4;
-          const x = pixelIndex % canvas.width;
-          const y = Math.floor(pixelIndex / canvas.width);
-          
-          // Only smooth interior pixels to avoid edge artifacts
-          if (x > 0 && x < canvas.width - 1 && y > 0 && y < canvas.height - 1) {
-            const neighbors = [
-              pixelIndex - 1,
-              pixelIndex + 1,
-              pixelIndex - canvas.width,
-              pixelIndex + canvas.width,
-            ];
-            
-            // Very conservative averaging (15% smoothing)
-            let r = data[i] * 0.7;
-            let g = data[i + 1] * 0.7;
-            let b = data[i + 2] * 0.7;
-            
-            neighbors.forEach((n) => {
-              const idx = n * 4;
-              if (idx >= 0 && idx < data.length) {
-                r += data[idx] * 0.075;
-                g += data[idx + 1] * 0.075;
-                b += data[idx + 2] * 0.075;
-              }
-            });
-            
-            data[i] = Math.round(r);
-            data[i + 1] = Math.round(g);
-            data[i + 2] = Math.round(b);
-          }
-        }
-        
-        ctx.putImageData(imageData, 0, 0);
-        canvas.toBlob((deblocked) => {
-          if (deblocked) resolve(deblocked);
-          else resolve(blob);
-        }, "image/png");
-      };
-      img.onerror = () => resolve(blob);
-      img.src = e.target?.result as string;
-    };
-    reader.onerror = () => resolve(blob);
-    reader.readAsDataURL(blob);
-  });
-}
 
 /**
  * Analyze image to detect text and transparency.
@@ -371,18 +295,8 @@ export function useImageCompressor() {
         
         setProgress(85);
 
-        // Apply deblocking to JPEG to smooth block artifacts
-        if (bestFormat === "image/jpeg") {
-          try {
-            compressed = await applyDeblocking(compressed);
-          } catch (e) {
-            // If deblocking fails, continue with original compressed
-            console.warn("Deblocking failed, using standard compression", e);
-          }
-        }
-
         // Quality validation: if compression is poor relative to original, try WebP
-        if (!isText && compressed.size > originalFile.size * 0.75) {
+        if (!isText && compressed.size > originalFile.size * 0.8) {
           const webpOptions = {
             maxSizeMB: 50,
             maxWidthOrHeight: settings.width || undefined,
@@ -393,7 +307,7 @@ export function useImageCompressor() {
           const webpCompressed = await imageCompression(originalFile, webpOptions);
           
           // Use WebP if significantly better
-          if (webpCompressed.size < compressed.size * 0.95) {
+          if (webpCompressed.size < compressed.size * 0.9) {
             compressed = webpCompressed;
           }
         }
