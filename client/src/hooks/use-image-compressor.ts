@@ -84,20 +84,19 @@ function mapQuality(sliderValue: number): number {
 
 /**
  * Smart format selection based on image content and user preference.
+ * RESPECTS user's explicit format choice - quality is protected via quality floors instead.
  */
 function selectFormat(
   detectedTextLike: boolean,
   userFormat: string,
   hasTransparency: boolean
 ): string {
-  // Text/documents: prefer PNG for lossless quality
-  if (detectedTextLike) {
-    return "image/png";
-  }
+  // ALWAYS respect user's format selection
+  // Quality protection is handled via quality minimum floors, not format override
   
-  // Transparent images: use WebP or PNG
-  if (hasTransparency && userFormat !== "image/jpeg") {
-    return "image/webp";
+  // Only override for transparency if needed
+  if (hasTransparency && userFormat === "image/jpeg") {
+    return "image/webp"; // JPEG doesn't support transparency
   }
   
   // Default to user selection
@@ -258,67 +257,49 @@ export function useImageCompressor() {
       
       const finalQuality = mappedQuality;
       
-      // Select best format - text MUST use PNG (lossless)
+      // Select best format - RESPECTS user choice
       const bestFormat = selectFormat(isText, settings.format, hasTransparency);
       
       setProgress(30);
 
-      // For text images, always use PNG lossless (never lossy compression)
-      if (isText && bestFormat === "image/png") {
-        const textOptions = {
+      // Compress with user's chosen format
+      // Quality minimums are already enforced above for text protection
+      const options = {
+        maxSizeMB: 50,
+        maxWidthOrHeight: settings.width || undefined,
+        useWebWorker: true,
+        initialQuality: finalQuality,
+        fileType: bestFormat,
+        onProgress: (p: number) => setProgress(Math.round(30 + (p * 0.6))), // 30-90%
+      };
+
+      let compressed = await imageCompression(originalFile, options);
+      
+      setProgress(85);
+
+      // Smart fallback: try WebP if compression is ineffective
+      if (compressed.size > originalFile.size * 0.85) {
+        const webpOptions = {
           maxSizeMB: 50,
           maxWidthOrHeight: settings.width || undefined,
           useWebWorker: true,
-          initialQuality: 1.0, // Lossless PNG for text
-          fileType: "image/png",
-          onProgress: (p: number) => setProgress(Math.round(30 + (p * 0.6))),
+          initialQuality: Math.max(finalQuality, 0.82), // Maintain quality in fallback
+          fileType: "image/webp",
         };
+        const webpCompressed = await imageCompression(originalFile, webpOptions);
         
-        const compressed = await imageCompression(originalFile, textOptions);
-        setCompressedFile(compressed);
-        
-        if (previewUrl) URL.revokeObjectURL(previewUrl);
-        setPreviewUrl(URL.createObjectURL(compressed));
-        setProgress(100);
-      } else {
-        // For photos, compress with quality-based approach
-        const options = {
-          maxSizeMB: 50,
-          maxWidthOrHeight: settings.width || undefined,
-          useWebWorker: true,
-          initialQuality: finalQuality,
-          fileType: bestFormat,
-          onProgress: (p: number) => setProgress(Math.round(30 + (p * 0.6))), // 30-90%
-        };
-
-        let compressed = await imageCompression(originalFile, options);
-        
-        setProgress(85);
-
-        // Quality validation: if compression is poor relative to original, try WebP
-        if (!isText && compressed.size > originalFile.size * 0.8) {
-          const webpOptions = {
-            maxSizeMB: 50,
-            maxWidthOrHeight: settings.width || undefined,
-            useWebWorker: true,
-            initialQuality: Math.max(finalQuality, 0.85), // Higher quality for WebP
-            fileType: "image/webp",
-          };
-          const webpCompressed = await imageCompression(originalFile, webpOptions);
-          
-          // Use WebP if significantly better
-          if (webpCompressed.size < compressed.size * 0.9) {
-            compressed = webpCompressed;
-          }
+        // Use WebP only if significantly better
+        if (webpCompressed.size < compressed.size * 0.92) {
+          compressed = webpCompressed;
         }
-        
-        setCompressedFile(compressed);
-        
-        if (previewUrl) URL.revokeObjectURL(previewUrl);
-        setPreviewUrl(URL.createObjectURL(compressed));
-        
-        setProgress(100);
       }
+      
+      setCompressedFile(compressed);
+      
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+      setPreviewUrl(URL.createObjectURL(compressed));
+      
+      setProgress(100);
     } catch (error) {
       console.error("Compression error:", error);
       toast({
