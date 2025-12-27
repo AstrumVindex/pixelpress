@@ -12,7 +12,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Zap, Lock, Sliders, Monitor } from "lucide-react";
+import { Zap, Lock, Sliders, Monitor, Cpu, Lock as LockIcon, Server, Zap as ZapIcon } from "lucide-react";
 
 export default function Home() {
   const {
@@ -65,7 +65,7 @@ export default function Home() {
                 </span>
               </h1>
               <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-                Reduce file size up to 90% instantly. Secure, private, and runs entirely in your browser. No server uploads, ever.
+                Reduce file size while preserving quality. Secure, private, and runs entirely in your browser. No server uploads, ever.
               </p>
             </motion.div>
             
@@ -152,6 +152,47 @@ export default function Home() {
                   </div>
                   <h3 className="font-display font-bold text-lg mb-2">{feat.title}</h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">{feat.desc}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* How It Works Section */}
+          <section className="max-w-5xl mx-auto pt-16">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-display font-bold mb-4">How PixelPress Works</h2>
+              <p className="text-muted-foreground">Everything happens on your device—securely and instantly.</p>
+            </div>
+            
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {[
+                {
+                  icon: LockIcon,
+                  title: "Local Processing",
+                  desc: "All image compression runs directly in your browser using your device's processing power."
+                },
+                {
+                  icon: Cpu,
+                  title: "Smart Compression",
+                  desc: "Our algorithms detect text and details, applying optimal compression to preserve clarity."
+                },
+                {
+                  icon: Server,
+                  title: "No Server Uploads",
+                  desc: "Your images never leave your device. No files are uploaded, stored, or shared with servers."
+                },
+                {
+                  icon: ZapIcon,
+                  title: "Instant Results",
+                  desc: "Using modern web APIs, compression completes in seconds with no waiting."
+                }
+              ].map((item, i) => (
+                <div key={i} className="p-5 rounded-2xl bg-white/50 border border-border/50 text-center">
+                  <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary mx-auto mb-3">
+                    <item.icon className="w-5 h-5" />
+                  </div>
+                  <h3 className="font-semibold text-sm mb-2">{item.title}</h3>
+                  <p className="text-xs text-muted-foreground leading-relaxed">{item.desc}</p>
                 </div>
               ))}
             </div>
