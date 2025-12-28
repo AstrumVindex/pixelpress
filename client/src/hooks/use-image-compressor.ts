@@ -118,26 +118,43 @@ async function forceConvertFormat(
     reader.onload = (e) => {
       const img = new Image();
       img.onload = () => {
-        const canvas = document.createElement("canvas");
-        canvas.width = img.width;
-        canvas.height = img.height;
-        
-        const ctx = canvas.getContext("2d");
-        if (!ctx) {
-          resolve(blob);
-          return;
-        }
-        
-        ctx.drawImage(img, 0, 0);
-        
-        // Force conversion to target format
-        canvas.toBlob((convertedBlob) => {
-          if (convertedBlob) {
-            resolve(convertedBlob);
-          } else {
+        try {
+          const canvas = document.createElement("canvas");
+          
+          // Validate dimensions before setting (prevent invalid canvas size errors)
+          const width = Math.max(1, Math.floor(img.width) || 1);
+          const height = Math.max(1, Math.floor(img.height) || 1);
+          
+          if (width > 65536 || height > 65536) {
+            // Canvas size limit, use original blob
             resolve(blob);
+            return;
           }
-        }, targetFormat, quality);
+          
+          canvas.width = width;
+          canvas.height = height;
+          
+          const ctx = canvas.getContext("2d");
+          if (!ctx) {
+            resolve(blob);
+            return;
+          }
+          
+          ctx.drawImage(img, 0, 0);
+          
+          // Force conversion to target format
+          canvas.toBlob((convertedBlob) => {
+            if (convertedBlob) {
+              resolve(convertedBlob);
+            } else {
+              resolve(blob);
+            }
+          }, targetFormat, quality);
+        } catch (err) {
+          // If any error during conversion, use original blob
+          console.warn("Canvas conversion error:", err);
+          resolve(blob);
+        }
       };
       img.onerror = () => resolve(blob);
       img.src = e.target?.result as string;
