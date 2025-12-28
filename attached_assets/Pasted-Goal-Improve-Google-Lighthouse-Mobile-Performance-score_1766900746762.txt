@@ -1,0 +1,121 @@
+Goal: Improve Google Lighthouse Mobile Performance score from ~64 to 90+ without breaking design or functionality.
+
+Current issues observed (Mobile):
+
+First Contentful Paint ≈ 5.9s (too slow)
+
+Largest Contentful Paint ≈ 5.9s (too slow)
+
+Desktop performance already good (≈95), do not regress desktop
+
+No blocking JS issues (TBT = 0), CLS = 0 (good)
+
+Tasks to implement (IMPORTANT):
+
+1️⃣ Fix slow First & Largest Contentful Paint (PRIORITY)
+
+Identify the LCP element (likely hero heading, main image, or upload card)
+
+Ensure LCP element:
+
+Loads immediately
+
+Is NOT delayed by JS
+
+Is NOT inside lazy-loaded components
+
+2️⃣ Image Optimization (CRITICAL)
+
+Convert all UI images to WebP
+
+Add width and height attributes to all images
+
+Use:
+
+<img loading="lazy" decoding="async">
+
+
+for all non-hero images
+
+For hero/LCP image:
+
+Disable lazy loading
+
+Preload it:
+
+<link rel="preload" as="image" href="hero.webp">
+
+3️⃣ Reduce Mobile CSS Cost
+
+Remove unused CSS
+
+Split critical CSS:
+
+Inline only above-the-fold CSS
+
+Load rest asynchronously
+
+Avoid large gradients/shadows on mobile
+
+4️⃣ Defer & Optimize JavaScript
+
+Add defer to ALL non-critical scripts
+
+Move JS to bottom of body
+
+Ensure no JS blocks initial render
+
+Avoid running JS on page load unless required
+
+5️⃣ Font Optimization (Very Important)
+
+Use only 1 font family
+
+Limit to 2 font weights max
+
+Add:
+
+<link rel="preload" as="font" type="font/woff2" crossorigin>
+
+
+Use:
+
+font-display: swap;
+
+6️⃣ Mobile-Specific Improvements
+
+Reduce padding/margins on mobile
+
+Avoid heavy animations on load
+
+Use media queries to simplify mobile layout
+
+7️⃣ Server & Delivery
+
+Enable GZIP or Brotli compression
+
+Add proper cache headers for static assets
+
+Ensure images, CSS, JS are cached
+
+8️⃣ SEO & Best Practices (Keep 100 score)
+
+Do NOT remove meta tags
+
+Keep semantic HTML
+
+Maintain accessibility score (83+)
+
+Final requirement:
+
+Mobile Performance ≥ 90
+
+Desktop Performance ≥ 90
+
+No layout shift
+
+No visual quality loss
+
+Keep UI clean and professional
+
+After changes, re-test using Google PageSpeed Insights (Mobile first).
