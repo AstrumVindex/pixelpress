@@ -1,4 +1,4 @@
-import { Zap } from "lucide-react";
+import { Zap, Mail } from "lucide-react";
 
 export function Header() {
   return (
@@ -16,7 +16,10 @@ export function Header() {
         <nav className="hidden md:flex items-center gap-6 glass-panel px-6 py-2 rounded-full text-sm font-medium text-muted-foreground">
           <a href="#features" className="hover:text-foreground transition-colors">Features</a>
           <a href="#faq" className="hover:text-foreground transition-colors">FAQ</a>
-          <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">GitHub</a>
+          <a href="mailto:pixelpresshelp4u@gmail.com" className="flex items-center gap-2 hover:text-foreground transition-colors">
+            <Mail className="w-4 h-4" />
+            Contact
+          </a>
         </nav>
       </div>
     </header>

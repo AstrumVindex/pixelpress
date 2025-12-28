@@ -159,7 +159,7 @@ export default function TermsOfService() {
                 </p>
                 <div className="bg-muted/30 p-4 rounded-lg mt-4 border border-border">
                   <p className="font-semibold">PixelPress Support</p>
-                  <p className="text-sm text-muted-foreground">Email: support@pixelpress.app</p>
+                  <p className="text-sm text-muted-foreground">Email: pixelpresshelp4u@gmail.com</p>
                 </div>
               </div>
             </section>
