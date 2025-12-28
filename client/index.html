@@ -3,27 +3,77 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
-    <meta name="description" content="PixelPress - Compress images without losing quality. Process images entirely in your browser with full privacy. Support WebP, PNG, and JPEG formats." />
+    <meta name="description" content="PixelPress - Free online image compressor. Compress images without losing quality using WebP, PNG, and JPEG formats. Fast, private, browser-based image optimization tool." />
     <meta name="theme-color" content="#f9d963" />
-    <meta property="og:title" content="PixelPress - Image Compression Tool" />
-    <meta property="og:description" content="Compress images without losing quality. Fast, private, browser-based image optimization." />
-    <meta property="og:type" content="website" />
     <meta name="robots" content="index, follow" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    
+    <!-- Open Graph Tags -->
+    <meta property="og:title" content="PixelPress - Compress Images Without Losing Quality" />
+    <meta property="og:description" content="Free online image compressor. Compress JPG, PNG, WebP images instantly in your browser. No uploads, 100% private." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://pixelpress.replit.dev" />
+    <meta property="og:image" content="https://pixelpress.replit.dev/favicon.png" />
+    
+    <!-- Twitter Card Tags -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="PixelPress - Free Image Compressor" />
+    <meta name="twitter:description" content="Compress images without quality loss. Fast, private, browser-based compression." />
+    <meta name="twitter:image" content="https://pixelpress.replit.dev/favicon.png" />
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://pixelpress.replit.dev" />
+    
+    <!-- Favicon -->
     <link rel="icon" type="image/png" href="/favicon.png" />
+    
+    <!-- Preconnect to fonts for faster loading -->
     <link rel="dns-prefetch" href="https://fonts.googleapis.com">
     <link rel="dns-prefetch" href="https://fonts.gstatic.com">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Outfit:wght@700&family=Inter:wght@400;500;600&display=swap" />
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- PWA Manifest -->
     <link rel="manifest" href="/manifest.json" />
-    <title>PixelPress - Compress Images Without Losing Quality</title>
+    
+    <!-- Sitemap -->
+    <link rel="sitemap" href="/sitemap.xml" />
+    
+    <title>PixelPress - Compress Images Without Losing Quality | Free Online Tool</title>
+    
+    <!-- JSON-LD Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "PixelPress",
+      "description": "Free online image compression tool. Compress JPG, PNG, and WebP images without losing quality.",
+      "url": "https://pixelpress.replit.dev",
+      "applicationCategory": "Multimedia",
+      "image": "https://pixelpress.replit.dev/favicon.png",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "creator": {
+        "@type": "Organization",
+        "name": "PixelPress",
+        "contactPoint": {
+          "@type": "ContactPoint",
+          "contactType": "Customer Service",
+          "email": "pixelpresshelp4u@gmail.com"
+        }
+      }
+    }
+    </script>
   </head>
   <body>
     <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
+    <script type="module" src="/src/main.tsx" defer></script>
   </body>
 </html>
