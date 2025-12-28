@@ -104,6 +104,50 @@ function selectFormat(
 }
 
 /**
+ * Force convert image to a specific format using canvas.
+ * This ensures the output format is ALWAYS the selected format.
+ */
+async function forceConvertFormat(
+  blob: Blob,
+  targetFormat: string,
+  quality: number
+): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = img.width;
+        canvas.height = img.height;
+        
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+          resolve(blob);
+          return;
+        }
+        
+        ctx.drawImage(img, 0, 0);
+        
+        // Force conversion to target format
+        canvas.toBlob((convertedBlob) => {
+          if (convertedBlob) {
+            resolve(convertedBlob);
+          } else {
+            resolve(blob);
+          }
+        }, targetFormat, quality);
+      };
+      img.onerror = () => resolve(blob);
+      img.src = e.target?.result as string;
+    };
+    reader.onerror = () => resolve(blob);
+    reader.readAsDataURL(blob);
+  });
+}
+
+/**
  * Resize image with maximum quality scaling before compression.
  * Uses high-quality interpolation to preserve edge clarity.
  */
@@ -276,6 +320,21 @@ export function useImageCompressor() {
       let compressed = await imageCompression(originalFile, options);
       
       setProgress(85);
+
+      // FORCE format conversion if selected format differs from input
+      // browser-image-compression may not enforce format, so we use canvas conversion
+      const inputMimeType = originalFile.type;
+      if (bestFormat !== inputMimeType && bestFormat !== "image/webp") {
+        // For JPEG and PNG, force conversion via canvas
+        try {
+          const converted = await forceConvertFormat(compressed, bestFormat, finalQuality);
+          if (converted.size < originalFile.size) {
+            compressed = converted;
+          }
+        } catch (e) {
+          console.warn("Format conversion failed, continuing with compressed", e);
+        }
+      }
 
       // Smart fallback: try WebP if compression is ineffective
       if (compressed.size > originalFile.size * 0.85) {

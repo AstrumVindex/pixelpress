@@ -29,10 +29,21 @@ export default function Home() {
 
   const handleDownload = () => {
     if (compressedFile) {
+      // Determine file extension based on selected format
+      const formatMap: Record<string, string> = {
+        'image/jpeg': 'jpg',
+        'image/png': 'png',
+        'image/webp': 'webp'
+      };
+      const extension = formatMap[settings.format] || 'jpg';
+      
+      // Get base filename without extension
+      const baseFilename = originalFile?.name?.split('.')[0] || 'image';
+      
       const url = URL.createObjectURL(compressedFile);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `compressed-${originalFile?.name || 'image'}`;
+      a.download = `${baseFilename}-compressed.${extension}`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
