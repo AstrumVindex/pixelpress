@@ -17,9 +17,12 @@ export function Footer() {
           </div>
           
           <div>
-            <h4 className="font-semibold mb-4">Product</h4>
+            <h4 className="font-semibold mb-4">Tools</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li><Link href="/" className="hover:text-primary transition-colors">Image Compressor</Link></li>
+              <li><Link href="/compress-png" className="hover:text-primary transition-colors">Compress PNG</Link></li>
+              <li><Link href="/compress-jpeg" className="hover:text-primary transition-colors">Compress JPEG</Link></li>
+              <li><Link href="/compress-webp" className="hover:text-primary transition-colors">Convert to WebP</Link></li>
+              <li><Link href="/resize-image" className="hover:text-primary transition-colors">Resize Image</Link></li>
             </ul>
           </div>
 
@@ -32,14 +35,25 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="pt-8 border-t border-border flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <ShieldCheck className="w-4 h-4 text-green-500" />
-            <span>Processed securely in your browser. No files uploaded.</span>
+        <div className="pt-8 border-t border-border space-y-4">
+          <div className="flex flex-wrap gap-3 justify-center md:justify-start">
+            <div className="flex items-center gap-2 px-3 py-2 bg-green-50 border border-green-200 rounded-lg text-xs font-semibold text-green-700">
+              <ShieldCheck className="w-4 h-4" />
+              100% Browser-Based
+            </div>
+            <div className="flex items-center gap-2 px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg text-xs font-semibold text-blue-700">
+              <ShieldCheck className="w-4 h-4" />
+              No Server Uploads
+            </div>
+            <div className="flex items-center gap-2 px-3 py-2 bg-purple-50 border border-purple-200 rounded-lg text-xs font-semibold text-purple-700">
+              <ShieldCheck className="w-4 h-4" />
+              Privacy First
+            </div>
           </div>
           
-          <div className="flex items-center gap-1 text-sm text-muted-foreground">
-            Made with <Heart className="w-4 h-4 text-red-500 fill-current" /> by Design Engineer
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-muted-foreground pt-4 border-t border-border">
+            <span>© 2025 PixelPress. Made with <Heart className="w-4 h-4 text-red-500 fill-current inline" /> for privacy-conscious developers.</span>
+            <a href="mailto:pixelpresshelp4u@gmail.com" className="hover:text-primary transition-colors">Support</a>
           </div>
         </div>
       </div>

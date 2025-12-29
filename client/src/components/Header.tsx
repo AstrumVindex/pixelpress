@@ -14,7 +14,10 @@ export function Header() {
         </div>
         
         <nav className="hidden md:flex items-center gap-6 glass-panel px-6 py-2 rounded-full text-sm font-medium text-muted-foreground">
-          <a href="#features" className="hover:text-foreground transition-colors">Features</a>
+          <a href="/compress-png" className="hover:text-foreground transition-colors">PNG</a>
+          <a href="/compress-jpeg" className="hover:text-foreground transition-colors">JPEG</a>
+          <a href="/compress-webp" className="hover:text-foreground transition-colors">WebP</a>
+          <a href="/resize-image" className="hover:text-foreground transition-colors">Resize</a>
           <a href="#faq" className="hover:text-foreground transition-colors">FAQ</a>
           <a href="mailto:pixelpresshelp4u@gmail.com" className="flex items-center gap-2 hover:text-foreground transition-colors">
             <Mail className="w-4 h-4" />

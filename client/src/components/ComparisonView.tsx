@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Download, RefreshCw, X, ArrowRight, ArrowLeft } from "lucide-react";
+import { Download, RefreshCw, X, ArrowRight, ArrowLeft, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
+import { useToast } from "@/hooks/use-toast";
 
 interface ComparisonViewProps {
   originalUrl: string;
@@ -25,6 +26,7 @@ export function ComparisonView({
   onReset
 }: ComparisonViewProps) {
   const [sliderPosition, setSliderPosition] = useState(50);
+  const { toast } = useToast();
   
   const formatSize = (bytes: number) => {
     if (bytes === 0) return "0 B";
@@ -36,6 +38,23 @@ export function ComparisonView({
 
   const savings = originalSize > 0 ? ((originalSize - compressedSize) / originalSize) * 100 : 0;
   const isSavingsPositive = savings > 0;
+
+  const handleShare = () => {
+    const text = `I just compressed an image and saved ${savings.toFixed(1)}% (${formatSize(originalSize - compressedSize)})! Try PixelPress - free, fast, and secure image compression 🚀`;
+    if (navigator.share) {
+      navigator.share({
+        title: 'PixelPress - Image Compression',
+        text: text,
+        url: 'https://pixelpress.replit.dev'
+      }).catch(() => {});
+    } else {
+      navigator.clipboard.writeText(text);
+      toast({
+        title: "Copied to clipboard!",
+        description: "Share your compression savings with others"
+      });
+    }
+  };
 
   return (
     <div className="flex flex-col gap-6">
@@ -127,6 +146,16 @@ export function ComparisonView({
         >
           <X className="w-4 h-4 mr-2" />
           Cancel
+        </Button>
+        <Button 
+          variant="outline"
+          size="lg"
+          onClick={handleShare}
+          disabled={isCompressing}
+          className="flex-1 rounded-xl h-14 text-base"
+        >
+          <Share2 className="w-4 h-4 mr-2" />
+          Share
         </Button>
         <Button 
           size="lg" 
