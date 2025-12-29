@@ -6,6 +6,12 @@ import { Controls } from "@/components/Controls";
 import { ComparisonView } from "@/components/ComparisonView";
 import { useImageCompressor } from "@/hooks/use-image-compressor";
 import { motion, AnimatePresence } from "framer-motion";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 export default function CompressPNG() {
   useEffect(() => {
@@ -129,6 +135,31 @@ export default function CompressPNG() {
                 Web developers, graphic designers, ecommerce sellers, bloggers, and anyone sharing images online benefit from PNG compression to improve load times and user experience.
               </p>
             </div>
+          </section>
+
+          {/* FAQ Section */}
+          <section className="max-w-3xl mx-auto pt-16">
+            <h2 className="text-3xl font-display font-bold mb-8 text-center">Frequently Asked Questions</h2>
+            <Accordion type="single" collapsible className="w-full space-y-4">
+              <AccordionItem value="item-1" className="border border-border/60 rounded-xl px-4 bg-white/50 data-[state=open]:bg-white data-[state=open]:shadow-md transition-all">
+                <AccordionTrigger className="font-medium hover:no-underline">Is my data safe?</AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">
+                  Absolutely. Unlike other tools that upload your images to a server, PixelPress runs entirely in your web browser. Your images never leave your computer.
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="item-2" className="border border-border/60 rounded-xl px-4 bg-white/50 data-[state=open]:bg-white data-[state=open]:shadow-md transition-all">
+                <AccordionTrigger className="font-medium hover:no-underline">Does it support bulk compression?</AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">
+                  Currently we focus on single-image optimization to provide the best possible visual comparison tools. Bulk processing is on our roadmap!
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="item-3" className="border border-border/60 rounded-xl px-4 bg-white/50 data-[state=open]:bg-white data-[state=open]:shadow-md transition-all">
+                <AccordionTrigger className="font-medium hover:no-underline">Which formats are supported?</AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">
+                  We support input and output for JPG, PNG, and WebP formats. We recommend WebP for the best balance of quality and file size on the web.
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
           </section>
         </div>
       </main>
