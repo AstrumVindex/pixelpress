@@ -127,6 +127,47 @@ export default function Home() {
             )}
           </AnimatePresence>
 
+          {/* About & Benefits Section */}
+          <section className="max-w-4xl mx-auto pt-16 prose prose-sm max-w-none">
+            <div className="bg-white/50 border border-border/50 rounded-3xl p-8 md:p-12 space-y-6">
+              <div className="space-y-4">
+                <h2 className="text-3xl font-display font-bold text-foreground">About PixelPress</h2>
+                <p className="text-base text-muted-foreground leading-relaxed">
+                  PixelPress is a free, fast, and secure image compression tool that helps you reduce file sizes without losing quality. 
+                  Unlike traditional image compressors that upload your files to servers, PixelPress processes everything directly in your browser, 
+                  ensuring 100% privacy and security for your images.
+                </p>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="space-y-3">
+                  <h3 className="text-lg font-semibold text-foreground">Supported Formats</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    PixelPress supports compression and conversion for JPEG, PNG, and WebP image formats. 
+                    You can upload any of these formats and convert to any other format while optimizing file size.
+                  </p>
+                </div>
+                <div className="space-y-3">
+                  <h3 className="text-lg font-semibold text-foreground">100% Private</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    Your images never leave your device. All compression happens locally in your browser using modern web APIs. 
+                    No files are uploaded, stored, or shared with any servers.
+                  </p>
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-border/30">
+                <h3 className="text-lg font-semibold text-foreground mb-3">How It Works</h3>
+                <ol className="space-y-2 text-sm text-muted-foreground list-decimal list-inside">
+                  <li>Upload or drag-and-drop your image (JPEG, PNG, or WebP)</li>
+                  <li>Adjust compression quality, resize dimensions, and choose your output format</li>
+                  <li>See a real-time before/after comparison with file size savings</li>
+                  <li>Download your optimized image instantly</li>
+                </ol>
+              </div>
+            </div>
+          </section>
+
           {/* Features Grid */}
           <section id="features" className="max-w-5xl mx-auto pt-16">
             <div className="text-center mb-16">
