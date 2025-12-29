@@ -67,24 +67,27 @@ export function ComparisonView({
 
       {/* Comparison Slider */}
       <div className="relative w-full aspect-[4/3] md:aspect-video rounded-3xl overflow-hidden shadow-2xl shadow-black/10 select-none group border border-border bg-white">
-        {/* Compressed Image (Background) */}
+        {/* Base Layer: Compressed Image */}
         <img 
           src={compressedUrl} 
           alt="Compressed" 
           className="absolute inset-0 w-full h-full object-contain bg-white"
+          data-testid="img-compressed"
         />
         <Badge className="absolute top-4 right-4 z-10 bg-primary/90 hover:bg-primary pointer-events-none">Compressed</Badge>
 
-        {/* Original Image (Width-clipped container) */}
+        {/* Overlay Layer: Original Image with Clip Mask */}
         <div 
-          className="absolute inset-y-0 left-0 overflow-hidden"
-          style={{ width: `${sliderPosition}%` }}
+          className="absolute inset-0 overflow-hidden"
+          style={{ 
+            clipPath: `inset(0 ${100 - sliderPosition}% 0 0)`
+          }}
         >
           <img 
             src={originalUrl} 
             alt="Original" 
             className="absolute inset-0 w-full h-full object-contain bg-white"
-            style={{ width: '100%', maxWidth: 'none' }}
+            data-testid="img-original"
           />
           <Badge className="absolute top-4 left-4 z-10 bg-black/50 hover:bg-black/70 backdrop-blur-md pointer-events-none text-white border-0">Original</Badge>
         </div>
@@ -92,7 +95,7 @@ export function ComparisonView({
         {/* Slider Handle */}
         <div 
           className="absolute top-0 bottom-0 w-1 bg-white cursor-ew-resize z-20 shadow-[0_0_10px_rgba(0,0,0,0.3)]"
-          style={{ left: `${sliderPosition}%` }}
+          style={{ left: `${sliderPosition}%`, transform: 'translateX(-50%)' }}
         >
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 bg-white rounded-full shadow-lg flex items-center justify-center text-primary">
             <div className="flex gap-0.5">
@@ -110,6 +113,7 @@ export function ComparisonView({
           value={sliderPosition}
           onChange={(e) => setSliderPosition(Number(e.target.value))}
           className="absolute inset-0 w-full h-full opacity-0 cursor-ew-resize z-30 m-0 p-0 appearance-none"
+          data-testid="input-slider"
         />
       </div>
 
