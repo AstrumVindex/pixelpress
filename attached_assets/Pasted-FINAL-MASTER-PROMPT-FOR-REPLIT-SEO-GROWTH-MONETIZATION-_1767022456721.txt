@@ -1,0 +1,221 @@
+FINAL MASTER PROMPT FOR REPLIT (SEO + GROWTH + MONETIZATION)
+
+You are improving an existing browser-based image compression website (PixelPress).
+The goal is to transform it from a single-page tool into a search-optimized, scalable product that can rank on Google, attract organic traffic, and monetize non-intrusively.
+
+This is NOT a cosmetic change. Implement proper structure.
+
+🧱 PART 1: SITE ARCHITECTURE (CRITICAL)
+Convert SPA → Multi-Page SEO Architecture
+
+Create dedicated, crawlable pages with unique URLs and content:
+
+/compress-png
+
+/compress-jpeg
+
+/compress-webp
+
+/resize-image-for-passport
+
+Each page must:
+
+Be indexable
+
+Have unique <title> and <meta description>
+
+Use the SAME compression engine internally
+
+Have visible text content (not hidden)
+
+🧠 PART 2: ON-PAGE SEO (MANDATORY FOR EVERY PAGE)
+1️⃣ <head> must be COMPLETE
+
+Each page must include:
+
+<title>Compress PNG Images Online – Free & Secure | PixelPress</title>
+
+<meta name="description" content="Compress PNG images online without losing quality. Fast, secure, browser-based PNG compressor. No uploads required.">
+
+<link rel="canonical" href="https://pixelpress.com/compress-png">
+
+<meta name="robots" content="index, follow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+Titles: 50–60 chars
+
+Descriptions: 150–160 chars
+
+NO duplicate titles across pages
+
+2️⃣ Proper Heading Structure
+
+Each page must follow:
+
+<h1> → <h2> → <h3>
+
+
+Example for /compress-png:
+
+H1: Compress PNG Images Without Losing Quality
+
+H2: Why PNG Compression Matters
+
+H2: How PixelPress Compresses PNG Files
+
+H2: Common Use Cases
+
+🧩 PART 3: CONTENT STRATEGY (TEXT THAT RANKS)
+Add contextual content blocks on each landing page
+
+Example sections:
+
+What is PNG/JPEG/WebP compression?
+
+When to use this format
+
+Why browser-based compression is safer
+
+Who should use this (developers, bloggers, ecommerce)
+
+Create a /blog section with articles:
+
+“Why uploading images to servers is a privacy risk”
+
+“How to optimize images for React & Next.js”
+
+“WebAssembly vs server-side image compression”
+
+“Best image size for websites in 2025”
+
+Each blog post:
+
+800–1200 words
+
+Internal links to tool pages
+
+No keyword stuffing
+
+🧠 PART 4: SCHEMA MARKUP (VERY IMPORTANT)
+
+Add SoftwareApplication schema to homepage and tool pages:
+
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "PixelPress",
+  "applicationCategory": "MultimediaApplication",
+  "operatingSystem": "Web",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  }
+}
+
+
+This helps Google show:
+
+Rich snippets
+
+App info
+
+Higher CTR
+
+⚡ PART 5: PERFORMANCE (NON-NEGOTIABLE)
+
+Target Lighthouse:
+
+Performance: 100
+
+SEO: 90+
+
+Accessibility: 90+
+
+Best Practices: 100
+
+Requirements:
+
+LCP image preloaded
+
+No lazy-load on hero image
+
+All JS deferred
+
+Critical CSS inlined
+
+No layout shifts
+
+Comparison slider uses overlay masking, not resizing
+
+🚀 PART 6: VIRAL & TRAFFIC MECHANISMS
+Add subtle growth features:
+
+“Images compressed today: XXXX” counter
+
+Before/After comparison slider (already exists – keep it perfect)
+
+After compression success:
+
+Show “Saved 60% (2.1MB)”
+
+Add small “Share your savings” button with prefilled text
+
+Add footer badges:
+
+“100% Browser-Based”
+
+“No Server Uploads”
+
+“Privacy First”
+
+💰 PART 7: FUTURE MONETIZATION (DO NOT ENABLE ADS YET)
+
+Prepare structure for:
+
+Carbon Ads (dev-friendly)
+
+Affiliate recommendations (hosting, design tools)
+
+Freemium plan:
+
+Free: 1 image
+
+Pro: bulk, rename, AVIF/WebP batch
+
+Donation link (“Buy me a coffee”)
+
+Do NOT:
+
+Add intrusive ads
+
+Add popups
+
+Gate core functionality yet
+
+📁 PART 8: SEO INFRA FILES (MUST EXIST)
+
+/robots.txt
+
+/sitemap.xml (include all pages + blog)
+
+Custom 404 page
+
+HTTPS canonical enforcement
+
+🎯 FINAL GOAL
+
+This website must:
+
+Rank for long-tail keywords
+
+Be AdSense-ready
+
+Be privacy-trustworthy
+
+Feel premium, fast, and honest
+
+Scale from a tool → product
+
+Do not stop until structure is complete.
