@@ -27,6 +27,17 @@ export function serveStatic(app: Express) {
     next();
   });
 
+  // Explicitly serve robots.txt and sitemap.xml
+  app.get("/robots.txt", (_req, res) => {
+    res.set("Content-Type", "text/plain");
+    res.sendFile(path.resolve(distPath, "robots.txt"));
+  });
+
+  app.get("/sitemap.xml", (_req, res) => {
+    res.set("Content-Type", "application/xml");
+    res.sendFile(path.resolve(distPath, "sitemap.xml"));
+  });
+
   app.use(express.static(distPath, {
     etag: false,
     lastModified: false,
