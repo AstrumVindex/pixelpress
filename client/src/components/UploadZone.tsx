@@ -62,9 +62,9 @@ export function UploadZone({ onFileSelect }: UploadZoneProps) {
             </div>
 
             <div className="space-y-2">
-              <h3 className="text-2xl font-display font-semibold text-foreground">
+              <h2 className="text-2xl font-display font-semibold text-foreground">
                 {isDragActive ? "Drop it like it's hot!" : "Upload an image"}
-              </h3>
+              </h2>
               <p className="text-muted-foreground text-base max-w-sm mx-auto">
                 Drag and drop your image here, or click to browse.
                 <br />

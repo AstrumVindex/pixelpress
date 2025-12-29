@@ -66,12 +66,13 @@ export function Controls({ settings, onChange }: ControlsProps) {
           {/* Quality Slider */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <Label>Quality</Label>
+              <Label htmlFor="quality-slider">Quality</Label>
               <span className="bg-primary/10 text-primary px-2 py-0.5 rounded text-xs font-bold font-mono">
                 {settings.quality}%
               </span>
             </div>
             <Slider
+              id="quality-slider"
               value={[settings.quality]}
               min={1}
               max={100}
@@ -107,9 +108,10 @@ export function Controls({ settings, onChange }: ControlsProps) {
 
             {/* Max Width */}
             <div className="space-y-2">
-              <Label>Max Width (px)</Label>
+              <Label htmlFor="max-width">Max Width (px)</Label>
               <div className="relative">
                 <input
+                  id="max-width"
                   type="number"
                   placeholder="Auto"
                   min="1"
