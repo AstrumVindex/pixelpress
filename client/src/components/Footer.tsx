@@ -37,15 +37,15 @@ export function Footer() {
 
         <div className="pt-8 border-t border-border space-y-4">
           <div className="flex flex-wrap gap-3 justify-center md:justify-start">
-            <div className="flex items-center gap-2 px-3 py-2 bg-green-50 border border-green-200 rounded-lg text-xs font-semibold text-green-700">
+            <div className="flex items-center gap-2 px-3 py-2 bg-primary/5 border border-primary/10 rounded-lg text-xs font-semibold text-primary">
               <ShieldCheck className="w-4 h-4" />
               100% Browser-Based
             </div>
-            <div className="flex items-center gap-2 px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg text-xs font-semibold text-blue-700">
+            <div className="flex items-center gap-2 px-3 py-2 bg-primary/5 border border-primary/10 rounded-lg text-xs font-semibold text-primary">
               <ShieldCheck className="w-4 h-4" />
               No Server Uploads
             </div>
-            <div className="flex items-center gap-2 px-3 py-2 bg-purple-50 border border-purple-200 rounded-lg text-xs font-semibold text-purple-700">
+            <div className="flex items-center gap-2 px-3 py-2 bg-primary/5 border border-primary/10 rounded-lg text-xs font-semibold text-primary">
               <ShieldCheck className="w-4 h-4" />
               Privacy First
             </div>

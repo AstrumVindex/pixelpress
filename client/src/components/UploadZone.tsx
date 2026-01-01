@@ -74,7 +74,7 @@ export function UploadZone({ onFileSelect }: UploadZoneProps) {
               </p>
             </div>
 
-            <Button size="lg" className="rounded-full px-8 shadow-lg shadow-primary/20 mt-2">
+            <Button size="lg" className="rounded-full px-10 h-14 text-lg font-bold shadow-xl shadow-primary/20 mt-4 hover:scale-105 active:scale-95 transition-transform">
               Select Image
             </Button>
           </div>

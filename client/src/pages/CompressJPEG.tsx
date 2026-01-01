@@ -6,6 +6,8 @@ import { Controls } from "@/components/Controls";
 import { ComparisonView } from "@/components/ComparisonView";
 import { useImageCompressor } from "@/hooks/use-image-compressor";
 import { motion, AnimatePresence } from "framer-motion";
+import { Zap, Cpu, Sliders, Monitor } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   Accordion,
   AccordionContent,
@@ -51,11 +53,11 @@ export default function CompressJPEG() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50/50 via-white to-indigo-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
       <Header />
       
-      <main className="pt-32 pb-20 px-4 md:px-6">
+      <main className="pt-24 pb-20 px-4 md:px-6">
         <div className="max-w-7xl mx-auto space-y-24">
           
           {/* Hero Section */}
-          <section className="text-center space-y-8 max-w-3xl mx-auto">
+          <section className="text-center space-y-6 max-w-3xl mx-auto">
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -67,13 +69,13 @@ export default function CompressJPEG() {
                   Without Losing Quality
                 </span>
               </h1>
-              <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+              <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
                 Reduce JPEG file size dramatically while maintaining visual quality. Perfect for photos and realistic images.
               </p>
             </motion.div>
             
             {!originalFile && (
-              <div className="mt-12">
+              <div className="mt-8">
                 <UploadZone onFileSelect={handleFileSelect} />
               </div>
             )}
@@ -115,25 +117,51 @@ export default function CompressJPEG() {
           </AnimatePresence>
 
           {/* SEO Content */}
-          <section className="max-w-3xl mx-auto space-y-12">
-            <div className="bg-white/50 border border-border/50 rounded-3xl p-8 md:p-12 space-y-6">
-              <h2 className="text-3xl font-display font-bold text-foreground">Why Compress JPEG Images?</h2>
-              <p className="text-muted-foreground leading-relaxed">
-                JPEG is the most common format for photographs online. PixelPress compresses JPEG files intelligently, reducing file size by 50-80% while maintaining photo quality that's imperceptible to the human eye.
-              </p>
+          <section className="bg-slate-50 dark:bg-slate-900/50 -mx-4 md:-mx-6 py-16 md:py-20">
+            <div className="max-w-3xl mx-auto px-4 md:px-6 space-y-12">
+              <div className="space-y-6 text-center sm:text-left">
+                <h2 className="text-3xl font-display font-bold text-foreground">Why Compress JPEG Images?</h2>
+                <p className="text-muted-foreground leading-relaxed">
+                  JPEG is the most common format for photographs online. PixelPress compresses JPEG files intelligently, reducing file size by 50-80% while maintaining photo quality that's imperceptible to the human eye.
+                </p>
+              </div>
 
-              <h2 className="text-3xl font-display font-bold text-foreground mt-8">JPEG Compression Benefits</h2>
-              <ul className="space-y-3 text-muted-foreground">
-                <li className="flex gap-3"><span className="text-primary font-bold">•</span> Dramatically reduce file sizes (often 60-80% smaller)</li>
-                <li className="flex gap-3"><span className="text-primary font-bold">•</span> Perfect for photographs and realistic images</li>
-                <li className="flex gap-3"><span className="text-primary font-bold">•</span> Faster social media uploads</li>
-                <li className="flex gap-3"><span className="text-primary font-bold">•</span> Better mobile performance</li>
-              </ul>
+              <div className="space-y-6">
+                <h2 className="text-3xl font-display font-bold text-foreground text-center sm:text-left">JPEG Compression Benefits</h2>
+                <div className="grid sm:grid-cols-2 gap-4">
+                  {[
+                    { icon: Zap, title: "Faster Speed", desc: "Instantly reduce photo file sizes for web." },
+                    { icon: Cpu, title: "Quality Preservation", desc: "Maintain professional photo standards." },
+                    { icon: Sliders, title: "Social Ready", desc: "Perfect for Instagram, Facebook and more." },
+                    { icon: Monitor, title: "SEO Optimized", desc: "Faster images mean better Google rankings." }
+                  ].map((item, i) => (
+                    <div key={i} className="flex flex-col p-5 bg-white dark:bg-slate-800 rounded-2xl border border-border/50 shadow-sm hover-elevate transition-all">
+                      <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary mb-3">
+                        <item.icon className="w-5 h-5" />
+                      </div>
+                      <h3 className="font-bold text-base mb-1">{item.title}</h3>
+                      <p className="text-sm text-muted-foreground">{item.desc}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
 
-              <h2 className="text-3xl font-display font-bold text-foreground mt-8">Who Should Use JPEG Compression?</h2>
-              <p className="text-muted-foreground leading-relaxed">
-                Photographers, ecommerce businesses, travel bloggers, real estate agents, and social media managers use JPEG compression to optimize photos for web and social platforms while maintaining professional quality.
-              </p>
+              <div className="space-y-6 text-center sm:text-left">
+                <h2 className="text-3xl font-display font-bold text-foreground">Who Should Use JPEG Compression?</h2>
+                <p className="text-muted-foreground leading-relaxed">
+                  Photographers, ecommerce businesses, travel bloggers, real estate agents, and social media managers use JPEG compression to optimize photos for web and social platforms while maintaining professional quality.
+                </p>
+              </div>
+
+              <div className="pt-8 flex justify-center">
+                <Button 
+                  size="lg" 
+                  className="rounded-full px-8 h-14 text-lg font-semibold shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 transition-transform"
+                  onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                >
+                  Compress Your Images Now
+                </Button>
+              </div>
             </div>
           </section>
 
