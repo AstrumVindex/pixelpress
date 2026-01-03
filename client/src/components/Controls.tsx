@@ -164,6 +164,7 @@ export function Controls({ settings, onChange }: ControlsProps) {
               <SelectItem value="image/jpeg">JPEG</SelectItem>
               <SelectItem value="image/png">PNG</SelectItem>
               <SelectItem value="image/webp">WebP</SelectItem>
+              <SelectItem value="image/avif">AVIF</SelectItem>
             </SelectContent>
           </Select>
           <p className="text-[11px] text-muted-foreground flex items-center gap-1">

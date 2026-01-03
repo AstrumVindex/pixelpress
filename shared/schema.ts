@@ -3,7 +3,7 @@ import { z } from "zod";
 // We don't need a database table for a client-side only app, 
 // but we'll use Zod schemas to define our application state and configuration types.
 
-export const compressionFormatSchema = z.enum(["image/jpeg", "image/png", "image/webp"]);
+export const compressionFormatSchema = z.enum(["image/jpeg", "image/png", "image/webp", "image/avif"]);
 
 export const compressionSettingsSchema = z.object({
   quality: z.number().min(0).max(100).default(80),
