@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { UploadZone } from "@/components/UploadZone";
-import { Controls } from "@/components/Controls";
+import { ResizeControls } from "@/components/ResizeControls";
 import { ComparisonView } from "@/components/ComparisonView";
 import { useImageCompressor } from "@/hooks/use-image-compressor";
 import { motion, AnimatePresence } from "framer-motion";
@@ -100,7 +100,7 @@ export default function ResizeImage() {
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                   <div className="lg:col-span-4 order-2 lg:order-1">
                     <div className="bg-white/70 backdrop-blur-xl border border-white/40 shadow-xl shadow-indigo-500/5 rounded-3xl p-6 sticky top-24">
-                      <Controls settings={settings} onChange={setSettings} />
+                      <ResizeControls settings={settings} onChange={setSettings} />
                     </div>
                   </div>
 
