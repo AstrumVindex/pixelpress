@@ -1,0 +1,51 @@
+Act as a Senior Frontend Engineer and UI/UX Designer. I need to completely refactor the `ImageSettings` component of my image compression app to make it professional, intuitive, and trustworthy.
+
+Please implement the following upgrade plan. Use Tailwind CSS for styling.
+
+### 1. VISUAL RESTRUCTURE (The Layout)
+The current settings panel is too cluttered. Refactor the layout into three distinct, visually separated sections using dividers (<hr>) or distinct card backgrounds:
+- **Section A: Usage Mode (Presets)** - Top priority.
+- **Section B: Fine-Tuning (Quality & Format)** - Middle section.
+- **Section C: Dimensions & Privacy** - Bottom section.
+
+### 2. LOGIC UPGRADE: "Smart Presets"
+Replace the current generic icon presets with a **Card-Based Radio Group**.
+- **State Requirement:** Create a state variable `activePreset` ('safe', 'balanced', 'aggressive', 'max', 'custom').
+- **Logic:** When a user selects a preset, it must programmaticly set *all* controlling states (quality, format, resize, metadata) based on this map:
+    - **Safe:** Quality 70%, Format: Original, Resize: Off, Metadata: Strip.
+    - **Balanced:** Quality 55%, Format: WebP, Resize: Off, Metadata: Strip.
+    - **Aggressive:** Quality 40%, Format: WebP, Resize: On (Max 1600px).
+    - **Maximum:** Quality 30%, Format: AVIF (fallback WebP), Resize: On (Max 1200px).
+
+**CRITICAL STATE LOGIC:**
+If the user manually adjusts *any* slider or toggle after selecting a preset, automatically switch the `activePreset` UI state to **"Custom"** so the user knows they have deviated from the standard profile.
+
+### 3. UI COMPONENT IMPROVEMENTS
+Refactor the specific inputs as follows:
+
+**A. Output Format (Dropdown)**
+- Rename Label: "Format" -> "Output Format".
+- Add a helper note below the label: "WebP/AVIF recommended for web."
+- **Tooltip:** Add a distinct help icon (?) that shows: "WebP usually reduces image size by 30–80% with no visible quality loss." on hover.
+
+**B. Resize Logic (Conditional Render)**
+- Replace the "Max Width" input with a **Toggle Switch** labeled "Resize Image".
+- **Conditional:** Only when this toggle is `true`, render the Width/Height inputs below it with a smooth transition/animation.
+- Add helper text: "Resize images to a specific size for web, social media, or documents."
+
+**C. Visual Sliders**
+- Ensure the Quality slider has a live numeric indicator next to it (e.g., "78%").
+- Use a gradient track for the slider (Green at high quality -> Red at low quality) to visually indicate data loss.
+
+### 4. MICROCOPY & ACCESSIBILITY
+- **Labels:** Ensure every input has a semantic `<label>`.
+- **Keyboard Nav:** Ensure the new Preset cards are selectable via Tab + Enter/Space.
+- **Tooltips:** Implement the following tooltip text for clarity:
+    - *Strip Metadata:* "Removes hidden data like location (GPS) and camera details to improve privacy."
+
+### 5. CONSTRAINTS
+- **Do NOT** change the actual compression algorithm (the `compress()` function). Only change how the *settings* are passed to it.
+- **Do NOT** rely on server-side logic. Keep all state local.
+- Maintain the existing brand color (Purple) for active states.
+
+Analyze my current `Settings.jsx` (or equivalent file) and apply these changes now.
