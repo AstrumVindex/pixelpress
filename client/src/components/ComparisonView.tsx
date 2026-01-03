@@ -39,16 +39,35 @@ export function ComparisonView({
   const savings = originalSize > 0 ? ((originalSize - compressedSize) / originalSize) * 100 : 0;
   const isSavingsPositive = savings > 0;
 
-  const handleShare = () => {
+  const handleShare = async () => {
     const text = `I just compressed an image and saved ${savings.toFixed(1)}% (${formatSize(originalSize - compressedSize)})! Try PixelPress - free, fast, and secure image compression 🚀`;
-    if (navigator.share) {
-      navigator.share({
-        title: 'PixelPress - Image Compression',
-        text: text,
-        url: 'https://pixelpress.replit.dev'
-      }).catch(() => {});
-    } else {
-      navigator.clipboard.writeText(text);
+    
+    try {
+      if (navigator.share) {
+        // Try to fetch the blob from the compressedUrl
+        const response = await fetch(compressedUrl);
+        const blob = await response.blob();
+        const file = new File([blob], "compressed-image.png", { type: blob.type });
+
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            title: 'PixelPress - Image Compression',
+            text: text,
+            files: [file],
+            url: window.location.origin
+          });
+        } else {
+          await navigator.share({
+            title: 'PixelPress - Image Compression',
+            text: text,
+            url: window.location.origin
+          });
+        }
+      } else {
+        throw new Error('Share API not available');
+      }
+    } catch (err) {
+      await navigator.clipboard.writeText(text);
       toast({
         title: "Copied to clipboard!",
         description: "Share your compression savings with others"

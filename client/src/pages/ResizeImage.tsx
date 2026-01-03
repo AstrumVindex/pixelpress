@@ -4,6 +4,7 @@ import { Footer } from "@/components/Footer";
 import { UploadZone } from "@/components/UploadZone";
 import { ResizeControls } from "@/components/ResizeControls";
 import { ComparisonView } from "@/components/ComparisonView";
+import { CropDialog } from "@/components/CropDialog";
 import { useImageCompressor } from "@/hooks/use-image-compressor";
 import { motion, AnimatePresence } from "framer-motion";
 import { Zap, Cpu, Sliders, Monitor } from "lucide-react";
@@ -16,6 +17,7 @@ import {
 } from "@/components/ui/accordion";
 
 export default function ResizeImage() {
+  const [cropDialogOpen, setCropDialogOpen] = useState(false);
   useEffect(() => {
     document.title = "Resize Images Online – Free Bulk Image Resizer | PixelPress";
     const metaDesc = document.querySelector('meta[name="description"]');
@@ -100,9 +102,23 @@ export default function ResizeImage() {
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                   <div className="lg:col-span-4 order-2 lg:order-1">
                     <div className="bg-white/70 backdrop-blur-xl border border-white/40 shadow-xl shadow-indigo-500/5 rounded-3xl p-6 sticky top-24">
-                      <ResizeControls settings={settings} onChange={setSettings} />
+                      <ResizeControls 
+                        settings={settings} 
+                        onChange={setSettings} 
+                        onOpenCrop={() => setCropDialogOpen(true)}
+                      />
                     </div>
                   </div>
+
+                  <CropDialog
+                    open={cropDialogOpen}
+                    onOpenChange={setCropDialogOpen}
+                    image={originalPreviewUrl}
+                    onCropComplete={(croppedBlob) => {
+                      const file = new File([croppedBlob], originalFile?.name || "cropped.jpg", { type: "image/jpeg" });
+                      handleFileSelect(file);
+                    }}
+                  />
 
                   <div className="lg:col-span-8 order-1 lg:order-2">
                     <div className="bg-white/70 backdrop-blur-xl border border-white/40 shadow-xl shadow-indigo-500/5 rounded-3xl p-6">

@@ -171,6 +171,7 @@ async function forceConvertFormat(
 async function resizeImage(
   file: File,
   maxWidth: number | undefined,
+  maxHeight: number | undefined,
   maintainAspectRatio: boolean
 ): Promise<Blob> {
   return new Promise((resolve, reject) => {
@@ -184,10 +185,24 @@ async function resizeImage(
         let height = img.height;
         
         // Calculate new dimensions
-        if (maxWidth && width > maxWidth) {
-          width = maxWidth;
-          if (maintainAspectRatio) {
-            height = Math.round((img.height * maxWidth) / img.width);
+        if (maxWidth || maxHeight) {
+          if (maxWidth && maxHeight && !maintainAspectRatio) {
+            width = maxWidth;
+            height = maxHeight;
+          } else if (maxWidth && (!maxHeight || maintainAspectRatio)) {
+            if (width > maxWidth) {
+              width = maxWidth;
+              if (maintainAspectRatio) {
+                height = Math.round((img.height * maxWidth) / img.width);
+              }
+            }
+          } else if (maxHeight) {
+            if (height > maxHeight) {
+              height = maxHeight;
+              if (maintainAspectRatio) {
+                width = Math.round((img.width * maxHeight) / img.height);
+              }
+            }
           }
         }
         
@@ -324,17 +339,28 @@ export function useImageCompressor() {
       setProgress(30);
 
       // Compress with user's chosen format
-      // Quality minimums are already enforced above for text protection
       const options = {
         maxSizeMB: 50,
-        maxWidthOrHeight: settings.width || undefined,
+        maxWidthOrHeight: settings.width || settings.height || undefined,
         useWebWorker: true,
         initialQuality: finalQuality,
         fileType: bestFormat,
         onProgress: (p: number) => setProgress(Math.round(30 + (p * 0.6))), // 30-90%
       };
 
-      let compressed = await imageCompression(originalFile, options);
+      // If both dimensions specified and aspect ratio not maintained, 
+      // or if height is specified, we use our custom resize first
+      let fileToCompress: File | Blob = originalFile;
+      if ((settings.width && settings.height && !settings.maintainAspectRatio) || settings.height) {
+        fileToCompress = await resizeImage(
+          originalFile, 
+          settings.width, 
+          settings.height, 
+          settings.maintainAspectRatio
+        );
+      }
+
+      let compressed = await imageCompression(fileToCompress as File, options);
       
       setProgress(85);
 
@@ -373,7 +399,7 @@ export function useImageCompressor() {
       setCompressedFile(new File([compressed], originalFile.name, {
         type: compressed.type,
         lastModified: Date.now(),
-      }));
+      } as any));
       
       if (previewUrl) URL.revokeObjectURL(previewUrl);
       setPreviewUrl(URL.createObjectURL(compressed));

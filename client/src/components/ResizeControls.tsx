@@ -4,19 +4,17 @@ import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
-import { Settings2, Smartphone, Monitor, Mail, FileText, Info, HelpCircle, Maximize, Scissors } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Settings2, Maximize, Scissors } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 
 interface ResizeControlsProps {
   settings: CompressionSettings;
   onChange: (settings: CompressionSettings) => void;
+  onOpenCrop?: () => void;
 }
 
-export function ResizeControls({ settings, onChange }: ResizeControlsProps) {
+export function ResizeControls({ settings, onChange, onOpenCrop }: ResizeControlsProps) {
   const updateSetting = (newSettings: Partial<CompressionSettings>) => {
     onChange({ ...settings, ...newSettings });
   };
@@ -25,9 +23,22 @@ export function ResizeControls({ settings, onChange }: ResizeControlsProps) {
     <div className="space-y-8">
       {/* Section 1: Dimensions */}
       <div className="space-y-4">
-        <div className="flex items-center gap-2">
-          <Maximize className="w-4 h-4 text-primary" />
-          <span className="font-bold text-sm">Resize Settings</span>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Maximize className="w-4 h-4 text-primary" />
+            <span className="font-bold text-sm">Resize Settings</span>
+          </div>
+          {onOpenCrop && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="h-8 gap-1.5"
+              onClick={onOpenCrop}
+            >
+              <Scissors className="w-3.5 h-3.5" />
+              Crop Tool
+            </Button>
+          )}
         </div>
         
         <div className="bg-muted/30 p-4 rounded-xl space-y-4 border border-border/50">
@@ -52,8 +63,12 @@ export function ResizeControls({ settings, onChange }: ResizeControlsProps) {
                 id="height"
                 type="number"
                 placeholder="Auto"
-                className="h-10 bg-background opacity-50 cursor-not-allowed"
-                disabled
+                value={settings.height || ""}
+                onChange={(e) => {
+                  const val = e.target.value ? Number(e.target.value) : undefined;
+                  updateSetting({ height: val });
+                }}
+                className="h-10 bg-background"
               />
             </div>
           </div>
