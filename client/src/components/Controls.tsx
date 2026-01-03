@@ -50,7 +50,7 @@ const PRESETS = [
 export function Controls({ settings, onChange }: ControlsProps) {
   const activePreset = PRESETS.find(p => {
     if (p.id === "custom") return false;
-    const s = p.settings;
+    const s = p.settings as any;
     return s.quality === settings.quality && 
            s.format === settings.format && 
            s.maintainAspectRatio === settings.maintainAspectRatio &&
