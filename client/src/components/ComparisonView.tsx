@@ -62,23 +62,28 @@ export function ComparisonView({
             url: window.location.origin
           });
         } else {
-          // Fallback to text + link share
-          await navigator.share({
-            title: 'PixelPress - Image Compression',
-            text: text,
-            url: window.location.origin
-          });
+          // Fallback to clipboard if file sharing isn't supported (common on desktop)
+          throw new Error('File sharing not supported');
         }
       } else {
         throw new Error('Share API not available');
       }
     } catch (err) {
       console.error("Share failed:", err);
-      await navigator.clipboard.writeText(text);
-      toast({
-        title: "Copied to clipboard!",
-        description: "Share your compression savings with others"
-      });
+      try {
+        await navigator.clipboard.writeText(text);
+        toast({
+          title: "Copied to clipboard!",
+          description: "Share your compression savings with others"
+        });
+      } catch (clipErr) {
+        console.error("Clipboard failed:", clipErr);
+        toast({
+          title: "Share failed",
+          description: "Could not share or copy to clipboard",
+          variant: "destructive"
+        });
+      }
     }
   };
 
