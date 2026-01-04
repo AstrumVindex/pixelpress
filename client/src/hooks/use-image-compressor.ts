@@ -498,8 +498,15 @@ export function useImageCompressor() {
         smallestBlob = fileToProcess;
       }
 
-      // ONLY run compression library if enabled
-      if (isCompressionEnabled && (needsResize || settings.quality < 100)) {
+      // If compression is disabled, we STILL want the resized/format-changed file
+      if (!isCompressionEnabled) {
+        // Apply format conversion if needed
+        if (needsFormatChange || needsResize) {
+          const converted = await forceConvertFormat(smallestBlob, bestFormat, 1.0);
+          smallestBlob = converted;
+        }
+      } else if (needsResize || settings.quality < 100) {
+        // ONLY run compression library if enabled
         const options = {
           maxSizeMB: 50,
           maxWidthOrHeight: settings.width || settings.height || undefined,
@@ -512,19 +519,16 @@ export function useImageCompressor() {
         const compressed = await imageCompression(fileToProcess as File, options);
         
         // Only use compressed if it's actually smaller (or resize was requested)
-        if (compressed.size < smallestBlob.size || needsResize) {
+        if (compressed.size < smallestBlob.size || needsResize || needsFormatChange) {
           smallestBlob = compressed;
         }
       }
       
       setProgress(80);
 
-      // Only run forceConvertFormat if we NEED a format change
-      // This avoids destroying PNG optimizations when no change is needed
-      if (needsFormatChange || (!isCompressionEnabled && needsResize)) {
-        // If compression is off, forceConvertFormat preserves the resized blob at max quality
-        const converted = await forceConvertFormat(smallestBlob, bestFormat, finalQuality);
-        smallestBlob = converted;
+      // Final format check (redundant but safe)
+      if (smallestBlob.type !== bestFormat) {
+        smallestBlob = await forceConvertFormat(smallestBlob, bestFormat, finalQuality);
       }
       
       setProgress(90);

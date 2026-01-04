@@ -171,6 +171,7 @@ export default function ResizeImage() {
                         isCompressing={isCompressing}
                         onDownload={handleDownload}
                         onReset={reset}
+                        showDownload={true}
                       />
                     </div>
                   </div>

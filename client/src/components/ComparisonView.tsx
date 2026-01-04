@@ -14,6 +14,7 @@ interface ComparisonViewProps {
   isCompressing: boolean;
   onDownload: () => void;
   onReset: () => void;
+  showDownload?: boolean;
 }
 
 export function ComparisonView({
@@ -23,7 +24,8 @@ export function ComparisonView({
   compressedSize,
   isCompressing,
   onDownload,
-  onReset
+  onReset,
+  showDownload = false
 }: ComparisonViewProps) {
   const [sliderPosition, setSliderPosition] = useState(50);
   const { toast } = useToast();
@@ -38,6 +40,7 @@ export function ComparisonView({
 
   const savings = originalSize > 0 ? ((originalSize - compressedSize) / originalSize) * 100 : 0;
   const isSavingsPositive = savings > 0;
+  const canDownload = showDownload || isSavingsPositive;
 
   const handleShare = async () => {
     const text = `I just compressed an image and saved ${savings.toFixed(1)}% (${formatSize(originalSize - compressedSize)})! Try PixelPress - free, fast, and secure image compression 🚀`;
@@ -191,7 +194,7 @@ export function ComparisonView({
         <Button 
           size="lg" 
           onClick={onDownload}
-          disabled={isCompressing || !isSavingsPositive}
+          disabled={isCompressing || !canDownload}
           className={`
             flex-[2] rounded-xl h-14 text-base font-semibold shadow-lg shadow-primary/25
             transition-all hover:-translate-y-0.5 active:translate-y-0
