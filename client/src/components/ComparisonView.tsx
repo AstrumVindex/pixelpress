@@ -47,7 +47,15 @@ export function ComparisonView({
         // Try to fetch the blob from the compressedUrl
         const response = await fetch(compressedUrl);
         const blob = await response.blob();
-        const file = new File([blob], "compressed-image.png", { type: blob.type });
+        const mimeType = blob.type || "image/png";
+        const extension = mimeType.split("/")[1] || "png";
+
+        const file = new File(
+          [blob],
+          `pixelpress-compressed.${extension}`,
+          { type: mimeType }
+        );
+
 
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
           // Image share (WhatsApp, Telegram, etc.)
