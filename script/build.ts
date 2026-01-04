@@ -55,6 +55,9 @@ async function buildAll() {
     define: {
       "process.env.NODE_ENV": '"production"',
     },
+    banner: {
+      js: `var __bundled_dirname = __dirname;`,
+    },
     minify: true,
     external: externals,
     logLevel: "info",

@@ -1,9 +1,18 @@
 import express, { type Express } from "express";
 import fs from "fs";
 import path from "path";
+import { fileURLToPath } from "url";
+
+// Get current directory for both ESM (dev) and CJS (prod) environments
+const getCurrentDir = () => {
+  if (typeof __dirname !== 'undefined') {
+    return __dirname;
+  }
+  return path.dirname(fileURLToPath(import.meta.url));
+};
 
 export function serveStatic(app: Express) {
-  const distPath = path.resolve(__dirname, "public");
+  const distPath = path.resolve(getCurrentDir(), "public");
   if (!fs.existsSync(distPath)) {
     throw new Error(
       `Could not find the build directory: ${distPath}, make sure to build the client first`,
