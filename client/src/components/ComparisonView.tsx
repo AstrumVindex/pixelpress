@@ -27,7 +27,7 @@ export function ComparisonView({
 }: ComparisonViewProps) {
   const [sliderPosition, setSliderPosition] = useState(50);
   const { toast } = useToast();
-  
+
   const formatSize = (bytes: number) => {
     if (bytes === 0) return "0 B";
     const k = 1024;
@@ -41,7 +41,7 @@ export function ComparisonView({
 
   const handleShare = async () => {
     const text = `I just compressed an image and saved ${savings.toFixed(1)}% (${formatSize(originalSize - compressedSize)})! Try PixelPress - free, fast, and secure image compression 🚀`;
-    
+
     try {
       if (navigator.share) {
         // Try to fetch the blob from the compressedUrl
@@ -50,19 +50,20 @@ export function ComparisonView({
         const file = new File([blob], "compressed-image.png", { type: blob.type });
 
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          // Image share (WhatsApp, Telegram, etc.)
           await navigator.share({
-            title: 'PixelPress - Image Compression',
+            title: "PixelPress - Image Compression",
             text: text,
-            files: [file],
-            url: window.location.origin
+            files: [file]
           });
         } else {
+          // Text-only share (Email clients)
           await navigator.share({
-            title: 'PixelPress - Image Compression',
-            text: text,
-            url: window.location.origin
+            title: "PixelPress - Image Compression",
+            text: `${text}\n\n${window.location.origin}`
           });
         }
+
       } else {
         throw new Error('Share API not available');
       }
@@ -87,7 +88,7 @@ export function ComparisonView({
           <div className="text-xs text-muted-foreground uppercase font-bold tracking-wider mb-1">Compressed</div>
           <div className="text-lg font-bold font-display text-primary">{formatSize(compressedSize)}</div>
           {isCompressing && (
-            <motion.div 
+            <motion.div
               className="absolute inset-x-0 bottom-0 h-1 bg-primary"
               initial={{ x: "-100%" }}
               animate={{ x: "100%" }}
@@ -106,24 +107,24 @@ export function ComparisonView({
       {/* Comparison Slider */}
       <div className="relative w-full aspect-[4/3] md:aspect-video rounded-3xl overflow-hidden shadow-2xl shadow-black/10 select-none group border border-border bg-white">
         {/* Base Layer: Compressed Image */}
-        <img 
-          src={compressedUrl} 
-          alt="Compressed" 
+        <img
+          src={compressedUrl}
+          alt="Compressed"
           className="absolute inset-0 w-full h-full object-contain bg-white"
           data-testid="img-compressed"
         />
         <Badge className="absolute top-4 right-4 z-10 bg-primary/90 hover:bg-primary pointer-events-none">Compressed</Badge>
 
         {/* Overlay Layer: Original Image with Clip Mask */}
-        <div 
+        <div
           className="absolute inset-0 overflow-hidden"
-          style={{ 
+          style={{
             clipPath: `inset(0 ${100 - sliderPosition}% 0 0)`
           }}
         >
-          <img 
-            src={originalUrl} 
-            alt="Original" 
+          <img
+            src={originalUrl}
+            alt="Original"
             className="absolute inset-0 w-full h-full object-contain bg-white"
             data-testid="img-original"
           />
@@ -131,7 +132,7 @@ export function ComparisonView({
         </div>
 
         {/* Slider Handle */}
-        <div 
+        <div
           className="absolute top-0 bottom-0 w-1 bg-white cursor-ew-resize z-20 shadow-[0_0_10px_rgba(0,0,0,0.3)]"
           style={{ left: `${sliderPosition}%`, transform: 'translateX(-50%)' }}
         >
@@ -157,16 +158,16 @@ export function ComparisonView({
 
       {/* Actions */}
       <div className="flex flex-col sm:flex-row gap-4 pt-4">
-        <Button 
-          variant="outline" 
-          size="lg" 
+        <Button
+          variant="outline"
+          size="lg"
           onClick={onReset}
           className="flex-1 rounded-xl h-14 text-base hover:bg-muted/50 border-2"
         >
           <X className="w-4 h-4 mr-2" />
           Cancel
         </Button>
-        <Button 
+        <Button
           variant="outline"
           size="lg"
           onClick={handleShare}
@@ -176,8 +177,8 @@ export function ComparisonView({
           <Share2 className="w-4 h-4 mr-2" />
           Share
         </Button>
-        <Button 
-          size="lg" 
+        <Button
+          size="lg"
           onClick={onDownload}
           disabled={isCompressing || !isSavingsPositive}
           className={`
