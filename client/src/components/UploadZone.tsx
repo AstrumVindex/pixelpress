@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, memo } from "react";
 import { useDropzone } from "react-dropzone";
 import { motion } from "framer-motion";
 import { UploadCloud, Image as ImageIcon, FileUp } from "lucide-react";
@@ -8,7 +8,7 @@ interface UploadZoneProps {
   onFileSelect: (file: File) => void;
 }
 
-export function UploadZone({ onFileSelect }: UploadZoneProps) {
+export const UploadZone = memo(function UploadZone({ onFileSelect }: UploadZoneProps) {
   const onDrop = useCallback((acceptedFiles: File[]) => {
     if (acceptedFiles.length > 0) {
       onFileSelect(acceptedFiles[0]);
@@ -95,4 +95,4 @@ export function UploadZone({ onFileSelect }: UploadZoneProps) {
       </motion.div>
     </div>
   );
-}
+});

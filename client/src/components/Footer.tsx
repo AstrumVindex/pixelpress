@@ -1,7 +1,8 @@
 import { ShieldCheck, Heart } from "lucide-react";
 import { Link } from "wouter";
+import { memo } from "react";
 
-export function Footer() {
+export const Footer = memo(function Footer() {
   return (
     <footer className="bg-white border-t border-border/50 py-12 md:py-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -59,4 +60,4 @@ export function Footer() {
       </div>
     </footer>
   );
-}
+});

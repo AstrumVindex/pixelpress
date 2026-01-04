@@ -6,8 +6,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Link } from "wouter";
+import { memo } from "react";
 
-export function Header() {
+export const Header = memo(function Header() {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 px-4 py-4 md:px-6">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
@@ -50,4 +51,4 @@ export function Header() {
       </div>
     </header>
   );
-}
+});

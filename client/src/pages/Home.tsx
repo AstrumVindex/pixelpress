@@ -1,5 +1,5 @@
 import { Helmet } from "react-helmet";
-import { useState } from "react";
+import { useState, memo } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { UploadZone } from "@/components/UploadZone";
