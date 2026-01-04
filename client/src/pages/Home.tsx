@@ -19,6 +19,7 @@ export default function Home() {
     originalFile,
     compressedFile,
     isCompressing,
+    progress,
     settings,
     setSettings,
     previewUrl,
@@ -83,6 +84,28 @@ export default function Home() {
             {!originalFile && (
               <div className="mt-12">
                 <UploadZone onFileSelect={handleFileSelect} />
+              </div>
+            )}
+
+            {originalFile && !previewUrl && (
+              <div className="mt-12 max-w-2xl mx-auto">
+                <div className="bg-white/70 backdrop-blur-xl border border-white/40 shadow-xl rounded-3xl p-10 text-center space-y-6">
+                  <div className="relative w-20 h-20 mx-auto">
+                    <div className="absolute inset-0 border-4 border-primary/20 rounded-full" />
+                    <motion.div 
+                      className="absolute inset-0 border-4 border-primary rounded-full border-t-transparent"
+                      animate={{ rotate: 360 }}
+                      transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center font-bold text-primary">
+                      {progress}%
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="text-xl font-bold">Optimizing your image...</h3>
+                    <p className="text-muted-foreground">This happens entirely in your browser.</p>
+                  </div>
+                </div>
               </div>
             )}
           </section>
