@@ -454,13 +454,21 @@ export function useImageCompressor() {
       // Map quality with non-linear curve
       let mappedQuality = mapQuality(settings.quality);
       
-      // CRITICAL: Enforce minimum quality thresholds
-      if (isText) {
-        // Text/documents: never below 0.80 (80%)
-        mappedQuality = Math.max(mappedQuality, 0.80);
+      // Separate Resize and Compression logic
+      // If compression is disabled, we use maximum quality (1.0) and skip mapping
+      const isCompressionEnabled = settings.enableCompression !== false;
+      
+      if (!isCompressionEnabled) {
+        mappedQuality = 1.0;
       } else {
-        // Photos: never below 0.70 (70%)
-        mappedQuality = Math.max(mappedQuality, 0.70);
+        // CRITICAL: Enforce minimum quality thresholds only when compression is enabled
+        if (isText) {
+          // Text/documents: never below 0.80 (80%)
+          mappedQuality = Math.max(mappedQuality, 0.80);
+        } else {
+          // Photos: never below 0.70 (70%)
+          mappedQuality = Math.max(mappedQuality, 0.70);
+        }
       }
       
       const finalQuality = mappedQuality;
@@ -475,8 +483,20 @@ export function useImageCompressor() {
       // TRACK THE SMALLEST BLOB - start with original as baseline
       let smallestBlob: Blob = originalFile;
       
-      // Only run compression library if we need resize or significant compression
-      if (needsResize || settings.quality < 80) {
+      // RUN RESIZE if requested (independent of compression)
+      let fileToProcess: File | Blob = originalFile;
+      if (needsResize) {
+        fileToProcess = await resizeImage(
+          originalFile, 
+          settings.width, 
+          settings.height, 
+          settings.maintainAspectRatio
+        );
+        smallestBlob = fileToProcess;
+      }
+
+      // ONLY run compression library if enabled
+      if (isCompressionEnabled && (needsResize || settings.quality < 100)) {
         const options = {
           maxSizeMB: 50,
           maxWidthOrHeight: settings.width || settings.height || undefined,
@@ -486,17 +506,7 @@ export function useImageCompressor() {
           onProgress: (p: number) => setProgress(Math.round(30 + (p * 0.5))),
         };
 
-        let fileToCompress: File | Blob = originalFile;
-        if ((settings.width && settings.height && !settings.maintainAspectRatio) || settings.height) {
-          fileToCompress = await resizeImage(
-            originalFile, 
-            settings.width, 
-            settings.height, 
-            settings.maintainAspectRatio
-          );
-        }
-
-        const compressed = await imageCompression(fileToCompress as File, options);
+        const compressed = await imageCompression(fileToProcess as File, options);
         
         // Only use compressed if it's actually smaller (or resize was requested)
         if (compressed.size < smallestBlob.size || needsResize) {
@@ -508,22 +518,17 @@ export function useImageCompressor() {
 
       // Only run forceConvertFormat if we NEED a format change
       // This avoids destroying PNG optimizations when no change is needed
-      if (needsFormatChange) {
+      if (needsFormatChange || (!isCompressionEnabled && needsResize)) {
+        // If compression is off, forceConvertFormat preserves the resized blob at max quality
         const converted = await forceConvertFormat(smallestBlob, bestFormat, finalQuality);
-        // Only use converted if it's smaller or format change was explicitly requested
-        if (converted.size < smallestBlob.size) {
-          smallestBlob = converted;
-        } else if (needsFormatChange) {
-          // User explicitly wanted format change, use it even if larger
-          smallestBlob = converted;
-        }
+        smallestBlob = converted;
       }
       
       setProgress(90);
       
-      // FINAL PROTECTION: Never output larger than input unless resize/format change requested
+      // FINAL PROTECTION: Never output larger than input unless resize/format change/explicit compression requested
       let finalBlob: Blob = smallestBlob;
-      if (!needsResize && !needsFormatChange && finalBlob.size > originalFile.size) {
+      if (!needsResize && !needsFormatChange && isCompressionEnabled && finalBlob.size > originalFile.size) {
         finalBlob = originalFile;
       }
       

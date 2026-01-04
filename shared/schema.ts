@@ -12,6 +12,7 @@ export const compressionSettingsSchema = z.object({
   height: z.number().optional(),
   maintainAspectRatio: z.boolean().default(true),
   stripMetadata: z.boolean().default(true),
+  enableCompression: z.boolean().default(true),
 });
 
 export const imageFileSchema = z.object({

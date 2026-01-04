@@ -19,6 +19,18 @@ import {
 
 export default function ResizeImage() {
   const [cropDialogOpen, setCropDialogOpen] = useState(false);
+  const [originalDimensions, setOriginalDimensions] = useState<{ width: number; height: number }>();
+
+  useEffect(() => {
+    if (originalFile) {
+      const img = new Image();
+      img.onload = () => {
+        setOriginalDimensions({ width: img.width, height: img.height });
+      };
+      img.src = URL.createObjectURL(originalFile);
+    }
+  }, [originalFile]);
+
   const {
     originalFile,
     compressedFile,
@@ -31,6 +43,13 @@ export default function ResizeImage() {
     handleFileSelect,
     reset
   } = useImageCompressor();
+
+  // On resize page, default compression to OFF when file is selected
+  useEffect(() => {
+    if (originalFile && settings.enableCompression === undefined) {
+      setSettings(prev => ({ ...prev, enableCompression: false }));
+    }
+  }, [originalFile, settings.enableCompression, setSettings]);
 
   const handleDownload = () => {
     if (compressedFile) {
@@ -127,6 +146,7 @@ export default function ResizeImage() {
                         settings={settings} 
                         onChange={setSettings} 
                         onOpenCrop={() => setCropDialogOpen(true)}
+                        originalDimensions={originalDimensions}
                       />
                     </div>
                   </div>
