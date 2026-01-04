@@ -372,7 +372,7 @@ export function useImageCompressor() {
       const finalBlob = await forceConvertFormat(
         blobToFinalize, 
         bestFormat, 
-        bestFormat === "image/png" ? 1 : finalQuality
+        finalQuality
       );
       
       // Update the extension if format changed
