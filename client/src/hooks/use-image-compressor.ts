@@ -364,45 +364,34 @@ export function useImageCompressor() {
       
       setProgress(85);
 
-      // FORCE format conversion if selected format differs from input
-      // browser-image-compression may not enforce format, so we use canvas conversion
-      const inputMimeType = originalFile.type;
-      if (bestFormat !== inputMimeType && bestFormat !== "image/webp") {
-        // For JPEG and PNG, force conversion via canvas
-        try {
-          const converted = await forceConvertFormat(compressed, bestFormat, finalQuality);
-          if (converted.size < originalFile.size) {
-            compressed = converted;
-          }
-        } catch (e) {
-          console.warn("Format conversion failed, continuing with compressed", e);
-        }
-      }
-
-      // Smart fallback: try WebP if compression is ineffective
-      if (compressed.size > originalFile.size * 0.85) {
-        const webpOptions = {
-          maxSizeMB: 50,
-          maxWidthOrHeight: settings.width || undefined,
-          useWebWorker: true,
-          initialQuality: Math.max(finalQuality, 0.82), // Maintain quality in fallback
-          fileType: "image/webp",
-        };
-        const webpCompressed = await imageCompression(originalFile, webpOptions);
-        
-        // Use WebP only if significantly better
-        if (webpCompressed.size < compressed.size * 0.92) {
-          compressed = webpCompressed;
-        }
-      }
+      // 3. ENFORCE FORMAT AND METADATA INTEGRITY
+      // We use canvas to re-draw the image and convert it. This strips any corrupted
+      // or incompatible metadata that Photoshop/Photopea might choke on.
+      const blobToFinalize = (compressed.size < originalFile.size * 1.05) ? compressed : originalFile;
       
-      setCompressedFile(new File([compressed], originalFile.name, {
-        type: compressed.type,
+      const finalBlob = await forceConvertFormat(
+        blobToFinalize, 
+        bestFormat, 
+        bestFormat === "image/png" ? 1 : finalQuality
+      );
+      
+      // Update the extension if format changed
+      const getExtension = (mime: string) => {
+        if (mime === "image/png") return "png";
+        if (mime === "image/webp") return "webp";
+        return "jpg";
+      };
+      
+      const baseName = originalFile.name.replace(/\.[^/.]+$/, "");
+      const finalName = `${baseName}.${getExtension(finalBlob.type)}`;
+
+      setCompressedFile(new File([finalBlob], finalName, {
+        type: finalBlob.type,
         lastModified: Date.now(),
       }));
       
       if (previewUrl) URL.revokeObjectURL(previewUrl);
-      setPreviewUrl(URL.createObjectURL(compressed));
+      setPreviewUrl(URL.createObjectURL(finalBlob));
       
       setProgress(100);
     } catch (error) {
