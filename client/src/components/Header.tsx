@@ -1,4 +1,4 @@
-import { Zap, Mail, ChevronDown, Sun, Moon } from "lucide-react";
+import { Zap, Mail, ChevronDown } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -6,12 +6,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Link } from "wouter";
-import { useTheme } from "@/hooks/use-theme";
-import { Button } from "@/components/ui/button";
 
 export function Header() {
-  const { theme, setTheme } = useTheme();
-
   return (
     <header className="fixed top-0 left-0 right-0 z-50 px-4 py-4 md:px-6">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
@@ -50,21 +46,6 @@ export function Header() {
             <Mail className="w-4 h-4" />
             Contact
           </a>
-
-          <div className="w-[1px] h-4 bg-border/50 mx-2" />
-
-          <Button
-            variant="ghost"
-            size="icon"
-            className="w-8 h-8 rounded-full"
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-          >
-            {theme === "dark" ? (
-              <Sun className="w-4 h-4 text-yellow-500" />
-            ) : (
-              <Moon className="w-4 h-4 text-slate-700" />
-            )}
-          </Button>
         </nav>
       </div>
     </header>
