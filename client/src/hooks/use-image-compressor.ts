@@ -103,9 +103,46 @@ function selectFormat(
   return userFormat;
 }
 
+// Mobile-safe canvas limits (conservative for older devices)
+const MAX_CANVAS_DIMENSION = 4096; // Max width or height
+const MAX_CANVAS_PIXELS = 16777216; // 16 megapixels (4096 x 4096)
+
+/**
+ * Clamp dimensions to mobile-safe limits while maintaining aspect ratio.
+ */
+function clampDimensions(width: number, height: number): { width: number; height: number; wasResized: boolean } {
+  let w = width;
+  let h = height;
+  let wasResized = false;
+  
+  // Clamp individual dimensions
+  if (w > MAX_CANVAS_DIMENSION) {
+    h = Math.round(h * (MAX_CANVAS_DIMENSION / w));
+    w = MAX_CANVAS_DIMENSION;
+    wasResized = true;
+  }
+  if (h > MAX_CANVAS_DIMENSION) {
+    w = Math.round(w * (MAX_CANVAS_DIMENSION / h));
+    h = MAX_CANVAS_DIMENSION;
+    wasResized = true;
+  }
+  
+  // Clamp total pixels
+  const pixels = w * h;
+  if (pixels > MAX_CANVAS_PIXELS) {
+    const scale = Math.sqrt(MAX_CANVAS_PIXELS / pixels);
+    w = Math.floor(w * scale);
+    h = Math.floor(h * scale);
+    wasResized = true;
+  }
+  
+  return { width: Math.max(1, w), height: Math.max(1, h), wasResized };
+}
+
 /**
  * Force convert image to a specific format using canvas.toBlob().
  * Ensures proper MIME type, quality range, and AVIF fallback.
+ * Only clamps dimensions if canvas would exceed mobile limits.
  */
 async function forceConvertFormat(
   blob: Blob,
@@ -121,12 +158,17 @@ async function forceConvertFormat(
         try {
           const canvas = document.createElement("canvas");
           
-          const width = Math.max(1, Math.floor(img.width) || 1);
-          const height = Math.max(1, Math.floor(img.height) || 1);
+          // Only clamp if dimensions would cause mobile canvas failure
+          // Try original size first, fall back to clamped if context fails
+          let width = img.width;
+          let height = img.height;
+          const needsClamp = width * height > MAX_CANVAS_PIXELS || width > MAX_CANVAS_DIMENSION || height > MAX_CANVAS_DIMENSION;
           
-          if (width > 65536 || height > 65536) {
-            resolve(blob);
-            return;
+          if (needsClamp) {
+            const clamped = clampDimensions(width, height);
+            width = clamped.width;
+            height = clamped.height;
+            console.info(`Image clamped from ${img.width}x${img.height} to ${width}x${height} for mobile compatibility`);
           }
           
           canvas.width = width;
@@ -134,11 +176,16 @@ async function forceConvertFormat(
           
           const ctx = canvas.getContext("2d");
           if (!ctx) {
+            console.warn("Canvas context unavailable - device may have memory constraints");
             resolve(blob);
             return;
           }
           
-          ctx.drawImage(img, 0, 0);
+          // Enable high-quality scaling if we're downscaling
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = "high";
+          
+          ctx.drawImage(img, 0, 0, width, height);
           
           // PNG uses lossless compression - quality param should be undefined
           // JPEG/WebP use quality in range 0-1
@@ -197,7 +244,8 @@ async function forceConvertFormat(
 
 /**
  * Resize image with maximum quality scaling before compression.
- * Uses high-quality interpolation to preserve edge clarity.
+ * Uses progressive downscaling for large images to avoid mobile memory issues.
+ * Mobile-safe with dimension clamping.
  */
 async function resizeImage(
   file: File,
@@ -211,55 +259,108 @@ async function resizeImage(
     reader.onload = (e) => {
       const img = new Image();
       img.onload = () => {
-        const canvas = document.createElement("canvas");
-        let width = img.width;
-        let height = img.height;
-        
-        // Calculate new dimensions
-        if (maxWidth || maxHeight) {
-          if (maxWidth && maxHeight && !maintainAspectRatio) {
-            width = maxWidth;
-            height = maxHeight;
-          } else if (maxWidth && (!maxHeight || maintainAspectRatio)) {
-            if (width > maxWidth) {
+        try {
+          let width = img.width;
+          let height = img.height;
+          
+          // Calculate new dimensions based on user settings
+          if (maxWidth || maxHeight) {
+            if (maxWidth && maxHeight && !maintainAspectRatio) {
               width = maxWidth;
-              if (maintainAspectRatio) {
-                height = Math.round((img.height * maxWidth) / img.width);
-              }
-            }
-          } else if (maxHeight) {
-            if (height > maxHeight) {
               height = maxHeight;
-              if (maintainAspectRatio) {
-                width = Math.round((img.width * maxHeight) / img.height);
+            } else if (maxWidth && (!maxHeight || maintainAspectRatio)) {
+              if (width > maxWidth) {
+                width = maxWidth;
+                if (maintainAspectRatio) {
+                  height = Math.round((img.height * maxWidth) / img.width);
+                }
+              }
+            } else if (maxHeight) {
+              if (height > maxHeight) {
+                height = maxHeight;
+                if (maintainAspectRatio) {
+                  width = Math.round((img.width * maxHeight) / img.height);
+                }
               }
             }
           }
+          
+          // Apply mobile-safe dimension limits
+          const clamped = clampDimensions(width, height);
+          width = clamped.width;
+          height = clamped.height;
+          
+          // Use progressive downscaling for very large source images
+          // This prevents memory issues on mobile devices
+          let sourceCanvas: HTMLCanvasElement | HTMLImageElement = img;
+          const sourceWidth = img.width;
+          const sourceHeight = img.height;
+          
+          // If source is much larger than target, scale in steps
+          if (sourceWidth > width * 2 || sourceHeight > height * 2) {
+            const steps = Math.ceil(Math.log2(Math.max(sourceWidth / width, sourceHeight / height)));
+            let currentWidth = sourceWidth;
+            let currentHeight = sourceHeight;
+            let currentSource: HTMLCanvasElement | HTMLImageElement = img;
+            
+            for (let i = 0; i < steps - 1; i++) {
+              currentWidth = Math.max(width, Math.floor(currentWidth / 2));
+              currentHeight = Math.max(height, Math.floor(currentHeight / 2));
+              
+              const stepCanvas = document.createElement("canvas");
+              stepCanvas.width = currentWidth;
+              stepCanvas.height = currentHeight;
+              const stepCtx = stepCanvas.getContext("2d");
+              
+              if (!stepCtx) {
+                console.warn("Progressive resize step failed, using direct resize");
+                break;
+              }
+              
+              stepCtx.imageSmoothingEnabled = true;
+              stepCtx.imageSmoothingQuality = "high";
+              stepCtx.drawImage(currentSource, 0, 0, currentWidth, currentHeight);
+              
+              currentSource = stepCanvas;
+            }
+            sourceCanvas = currentSource;
+          }
+          
+          // Final canvas at target dimensions
+          const canvas = document.createElement("canvas");
+          canvas.width = width;
+          canvas.height = height;
+          
+          const ctx = canvas.getContext("2d");
+          if (!ctx) {
+            reject(new Error("Your device ran out of memory. Try a smaller image or close other apps."));
+            return;
+          }
+          
+          // Maximum quality image smoothing
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = "high";
+          
+          // Draw from source (either original or progressive step)
+          ctx.drawImage(sourceCanvas, 0, 0, width, height);
+          
+          // Preserve original format to maintain transparency and quality
+          // Use PNG for any format that might have transparency
+          const hasAlphaFormat = ["image/png", "image/webp", "image/avif"].includes(file.type);
+          const outputFormat = hasAlphaFormat ? "image/png" : "image/jpeg";
+          const quality = outputFormat === "image/png" ? undefined : 0.92;
+          
+          canvas.toBlob((blob) => {
+            if (blob) resolve(blob);
+            else reject(new Error("Image processing failed. Try a smaller image."));
+          }, outputFormat, quality);
+          
+        } catch (err) {
+          console.error("Resize error:", err);
+          reject(new Error("Image too large for this device. Try a smaller image."));
         }
-        
-        canvas.width = width;
-        canvas.height = height;
-        
-        const ctx = canvas.getContext("2d");
-        if (!ctx) {
-          reject(new Error("Failed to get canvas context"));
-          return;
-        }
-        
-        // Maximum quality image smoothing to prevent aliasing and pixelation
-        ctx.imageSmoothingEnabled = true;
-        ctx.imageSmoothingQuality = "high";
-        
-        // Draw image with high-quality interpolation
-        ctx.drawImage(img, 0, 0, width, height);
-        
-        // Convert to PNG for lossless intermediate
-        canvas.toBlob((blob) => {
-          if (blob) resolve(blob);
-          else reject(new Error("Canvas to blob conversion failed"));
-        }, "image/png");
       };
-      img.onerror = () => reject(new Error("Failed to load image"));
+      img.onerror = () => reject(new Error("Could not read this image file."));
       img.src = e.target?.result as string;
     };
     reader.onerror = () => reject(new Error("Failed to read file"));
@@ -454,9 +555,19 @@ export function useImageCompressor() {
       setProgress(100);
     } catch (error) {
       console.error("Compression error:", error);
+      const errorMessage = error instanceof Error ? error.message : "Something went wrong";
+      
+      // Provide helpful mobile-specific error messages
+      let description = errorMessage;
+      if (errorMessage.includes("memory") || errorMessage.includes("context")) {
+        description = "This image is too large for your device. Try closing other apps or using a smaller image.";
+      } else if (errorMessage.includes("too large")) {
+        description = "Image exceeds device limits. Try a smaller image (under 4000px).";
+      }
+      
       toast({
-        title: "Compression failed",
-        description: "Something went wrong while processing the image.",
+        title: "Processing failed",
+        description,
         variant: "destructive",
       });
     } finally {
