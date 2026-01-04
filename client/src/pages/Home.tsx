@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet";
 import { useState } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -54,6 +55,11 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50/50 via-white to-indigo-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+      <Helmet>
+        <title>PixelPress - Free Online Image Compression Tool</title>
+        <meta name="description" content="Compress, resize and convert images online for free. PixelPress is a private, browser-based tool that works locally without uploading your photos to a server." />
+        <meta name="keywords" content="image compressor, online image tool, free image resize, png compressor, jpeg optimizer, webp converter" />
+      </Helmet>
       <Header />
       
       <main className="pt-24 pb-20 px-4 md:px-6">

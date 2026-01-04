@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet";
 import { useState, useEffect } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -16,18 +17,11 @@ import {
 } from "@/components/ui/accordion";
 
 export default function CompressJPEG() {
-  useEffect(() => {
-    document.title = "Compress JPEG Images Online – Free & Secure | PixelPress";
-    const metaDesc = document.querySelector('meta[name="description"]');
-    if (metaDesc) {
-      metaDesc.setAttribute("content", "Compress JPEG images online without losing quality. Fast, secure, browser-based JPEG compressor. No server uploads, 100% private.");
-    }
-  }, []);
-
   const {
     originalFile,
     compressedFile,
     isCompressing,
+    progress,
     settings,
     setSettings,
     previewUrl,
@@ -51,6 +45,11 @@ export default function CompressJPEG() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50/50 via-white to-indigo-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+      <Helmet>
+        <title>Compress JPEG Images Online – Free & Secure | PixelPress</title>
+        <meta name="description" content="Compress JPEG images online without losing quality. Fast, secure, browser-based JPEG compressor. No server uploads, 100% private." />
+        <meta name="keywords" content="compress jpeg, jpg optimizer, online jpeg tool, resize jpg, image compression" />
+      </Helmet>
       <Header />
       
       <main className="pt-24 pb-20 px-4 md:px-6">
@@ -77,6 +76,28 @@ export default function CompressJPEG() {
             {!originalFile && (
               <div className="mt-8">
                 <UploadZone onFileSelect={handleFileSelect} />
+              </div>
+            )}
+
+            {originalFile && !previewUrl && (
+              <div className="mt-12 max-w-2xl mx-auto">
+                <div className="bg-white/70 backdrop-blur-xl border border-white/40 shadow-xl rounded-3xl p-10 text-center space-y-6">
+                  <div className="relative w-20 h-20 mx-auto">
+                    <div className="absolute inset-0 border-4 border-primary/20 rounded-full" />
+                    <motion.div 
+                      className="absolute inset-0 border-4 border-primary rounded-full border-t-transparent"
+                      animate={{ rotate: 360 }}
+                      transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center font-bold text-primary">
+                      {progress}%
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="text-xl font-bold">Optimizing your JPEG...</h3>
+                    <p className="text-muted-foreground">This happens entirely in your browser.</p>
+                  </div>
+                </div>
               </div>
             )}
           </section>

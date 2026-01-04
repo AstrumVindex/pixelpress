@@ -399,7 +399,7 @@ export function useImageCompressor() {
       setCompressedFile(new File([compressed], originalFile.name, {
         type: compressed.type,
         lastModified: Date.now(),
-      } as any));
+      }));
       
       if (previewUrl) URL.revokeObjectURL(previewUrl);
       setPreviewUrl(URL.createObjectURL(compressed));
