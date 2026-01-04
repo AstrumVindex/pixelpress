@@ -335,31 +335,25 @@ export function useImageCompressor() {
       
       // Select best format - RESPECTS user choice
       const bestFormat = selectFormat(isText, settings.format, hasTransparency);
+      const needsFormatChange = bestFormat !== originalFile.type;
+      const needsResize = !!(settings.width || settings.height);
       
       setProgress(30);
 
-      // 3. OPTIMIZED COMPRESSION FOR SMALL IMAGES
-      // If the image is already very small (< 50KB), we need to be extremely careful.
-      // We'll use a direct approach to avoid overhead from the compression library.
+      // TRACK THE SMALLEST BLOB - start with original as baseline
+      let smallestBlob: Blob = originalFile;
       
-      let finalBlob: Blob;
-      
-      if (originalFile.size < 50 * 1024 && settings.quality > 50 && !settings.width && !settings.height) {
-        // For tiny images, just use forceConvertFormat directly to avoid library overhead
-        finalBlob = await forceConvertFormat(originalFile, bestFormat, finalQuality);
-      } else {
-        // Compress with user's chosen format
+      // Only run compression library if we need resize or significant compression
+      if (needsResize || settings.quality < 80) {
         const options = {
           maxSizeMB: 50,
           maxWidthOrHeight: settings.width || settings.height || undefined,
           useWebWorker: true,
           initialQuality: finalQuality,
-          fileType: "image/jpeg", // Library handles JPEG best, we convert after
-          onProgress: (p: number) => setProgress(Math.round(30 + (p * 0.6))), // 30-90%
+          fileType: bestFormat,
+          onProgress: (p: number) => setProgress(Math.round(30 + (p * 0.5))),
         };
 
-        // If both dimensions specified and aspect ratio not maintained, 
-        // or if height is specified, we use our custom resize first
         let fileToCompress: File | Blob = originalFile;
         if ((settings.width && settings.height && !settings.maintainAspectRatio) || settings.height) {
           fileToCompress = await resizeImage(
@@ -371,23 +365,33 @@ export function useImageCompressor() {
         }
 
         const compressed = await imageCompression(fileToCompress as File, options);
-        setProgress(85);
-
-        // 4. ENFORCE FORMAT AND METADATA INTEGRITY
-        // We use canvas to re-draw the image and convert it. This strips any corrupted
-        // or incompatible metadata that Photoshop/Photopea might choke on.
-        // For very small images, we compare sizes and keep the smallest.
-        const blobToFinalize = (compressed.size < originalFile.size * 1.02) ? compressed : originalFile;
         
-        finalBlob = await forceConvertFormat(
-          blobToFinalize, 
-          bestFormat, 
-          finalQuality
-        );
+        // Only use compressed if it's actually smaller (or resize was requested)
+        if (compressed.size < smallestBlob.size || needsResize) {
+          smallestBlob = compressed;
+        }
       }
       
-      // FINAL SIZE PROTECTION: If somehow it's still bigger, and it's same format, use original
-      if (finalBlob.size >= originalFile.size && finalBlob.type === originalFile.type && !settings.width && !settings.height) {
+      setProgress(80);
+
+      // Only run forceConvertFormat if we NEED a format change
+      // This avoids destroying PNG optimizations when no change is needed
+      if (needsFormatChange) {
+        const converted = await forceConvertFormat(smallestBlob, bestFormat, finalQuality);
+        // Only use converted if it's smaller or format change was explicitly requested
+        if (converted.size < smallestBlob.size) {
+          smallestBlob = converted;
+        } else if (needsFormatChange) {
+          // User explicitly wanted format change, use it even if larger
+          smallestBlob = converted;
+        }
+      }
+      
+      setProgress(90);
+      
+      // FINAL PROTECTION: Never output larger than input unless resize/format change requested
+      let finalBlob: Blob = smallestBlob;
+      if (!needsResize && !needsFormatChange && finalBlob.size > originalFile.size) {
         finalBlob = originalFile;
       }
       
