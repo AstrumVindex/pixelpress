@@ -58,19 +58,20 @@ export function ComparisonView({
 
 
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
-          await navigator.share({
-            title: 'PixelPress - Image Compression',
-            text: text,
-            files: [file],
-            url: window.location.origin
-          });
-        } else {
-          await navigator.share({
-            title: 'PixelPress - Image Compression',
-            text: text,
-            url: window.location.origin
-          });
-        }
+  // Image share (WhatsApp, Telegram, etc.)
+  await navigator.share({
+    title: "PixelPress - Image Compression",
+    text: text,
+    files: [file]
+  });
+} else {
+  // Text-only share (Email clients)
+  await navigator.share({
+    title: "PixelPress - Image Compression",
+    text: `${text}\n\n${window.location.origin}`
+  });
+}
+
       } else {
         throw new Error('Share API not available');
       }
