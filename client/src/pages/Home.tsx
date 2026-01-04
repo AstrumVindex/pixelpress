@@ -251,25 +251,67 @@ export default function Home() {
           </section>
 
           {/* FAQ Section */}
-          <section id="faq" className="max-w-3xl mx-auto pt-16">
-            <h2 className="text-3xl font-display font-bold mb-8 text-center">Frequently Asked Questions</h2>
+          <section id="faq" className="max-w-3xl mx-auto pt-16 pb-12">
+            <h2 className="text-3xl font-display font-bold mb-8 text-center">FAQs</h2>
             <Accordion type="single" collapsible className="w-full space-y-4">
-              <AccordionItem value="item-1" className="border border-border/60 rounded-xl px-4 bg-white/50 data-[state=open]:bg-white data-[state=open]:shadow-md transition-all">
-                <AccordionTrigger className="font-medium hover:no-underline">Is my data safe?</AccordionTrigger>
+              <AccordionItem value="item-1" className="border border-border/60 rounded-xl px-4 bg-white/50 dark:bg-slate-800/50 data-[state=open]:bg-white dark:data-[state=open]:bg-slate-800 data-[state=open]:shadow-md transition-all">
+                <AccordionTrigger className="font-medium hover:no-underline text-left">1. What is PixelPress?</AccordionTrigger>
                 <AccordionContent className="text-muted-foreground">
-                  Absolutely. Unlike other tools that upload your images to a server, PixelPress runs entirely in your web browser. Your images never leave your computer.
+                  PixelPress is a free, browser-based image tool that helps you compress, convert, and resize images quickly without uploading them to a server.
                 </AccordionContent>
               </AccordionItem>
-              <AccordionItem value="item-2" className="border border-border/60 rounded-xl px-4 bg-white/50 data-[state=open]:bg-white data-[state=open]:shadow-md transition-all">
-                <AccordionTrigger className="font-medium hover:no-underline">Does it support bulk compression?</AccordionTrigger>
+              <AccordionItem value="item-2" className="border border-border/60 rounded-xl px-4 bg-white/50 dark:bg-slate-800/50 data-[state=open]:bg-white dark:data-[state=open]:bg-slate-800 data-[state=open]:shadow-md transition-all">
+                <AccordionTrigger className="font-medium hover:no-underline text-left">2. Is PixelPress really free to use?</AccordionTrigger>
                 <AccordionContent className="text-muted-foreground">
-                  Currently we focus on single-image optimization to provide the best possible visual comparison tools. Bulk processing is on our roadmap!
+                  Yes. PixelPress is completely free and does not require sign-up, subscriptions, or hidden payments.
                 </AccordionContent>
               </AccordionItem>
-              <AccordionItem value="item-3" className="border border-border/60 rounded-xl px-4 bg-white/50 data-[state=open]:bg-white data-[state=open]:shadow-md transition-all">
-                <AccordionTrigger className="font-medium hover:no-underline">Which formats are supported?</AccordionTrigger>
+              <AccordionItem value="item-3" className="border border-border/60 rounded-xl px-4 bg-white/50 dark:bg-slate-800/50 data-[state=open]:bg-white dark:data-[state=open]:bg-slate-800 data-[state=open]:shadow-md transition-all">
+                <AccordionTrigger className="font-medium hover:no-underline text-left">3. Are my images safe and private?</AccordionTrigger>
                 <AccordionContent className="text-muted-foreground">
-                  We support input and output for JPG, PNG, and WebP formats. We recommend WebP for the best balance of quality and file size on the web.
+                  Yes. All image processing happens locally in your browser. Your images are never uploaded, stored, or shared.
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="item-4" className="border border-border/60 rounded-xl px-4 bg-white/50 dark:bg-slate-800/50 data-[state=open]:bg-white dark:data-[state=open]:bg-slate-800 data-[state=open]:shadow-md transition-all">
+                <AccordionTrigger className="font-medium hover:no-underline text-left">4. What image formats does PixelPress support?</AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">
+                  PixelPress supports PNG, JPEG (JPG), and WebP formats for compression, conversion, and resizing.
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="item-5" className="border border-border/60 rounded-xl px-4 bg-white/50 dark:bg-slate-800/50 data-[state=open]:bg-white dark:data-[state=open]:bg-slate-800 data-[state=open]:shadow-md transition-all">
+                <AccordionTrigger className="font-medium hover:no-underline text-left">5. Do I need to create an account to use PixelPress?</AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">
+                  No account is required. You can start using PixelPress instantly.
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="item-6" className="border border-border/60 rounded-xl px-4 bg-white/50 dark:bg-slate-800/50 data-[state=open]:bg-white dark:data-[state=open]:bg-slate-800 data-[state=open]:shadow-md transition-all">
+                <AccordionTrigger className="font-medium hover:no-underline text-left">6. Can I use PixelPress on mobile devices?</AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">
+                  Yes. PixelPress works on most modern mobile browsers, including Chrome and Safari.
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="item-7" className="border border-border/60 rounded-xl px-4 bg-white/50 dark:bg-slate-800/50 data-[state=open]:bg-white dark:data-[state=open]:bg-slate-800 data-[state=open]:shadow-md transition-all">
+                <AccordionTrigger className="font-medium hover:no-underline text-left">7. Will image quality be affected?</AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">
+                  PixelPress is designed to reduce file size while maintaining high visual quality. Any quality loss is minimal and usually unnoticeable.
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="item-8" className="border border-border/60 rounded-xl px-4 bg-white/50 dark:bg-slate-800/50 data-[state=open]:bg-white dark:data-[state=open]:bg-slate-800 data-[state=open]:shadow-md transition-all">
+                <AccordionTrigger className="font-medium hover:no-underline text-left">8. Can I use PixelPress images for websites and social media?</AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">
+                  Yes. Images processed with PixelPress are suitable for websites, blogs, and social media platforms.
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="item-9" className="border border-border/60 rounded-xl px-4 bg-white/50 dark:bg-slate-800/50 data-[state=open]:bg-white dark:data-[state=open]:bg-slate-800 data-[state=open]:shadow-md transition-all">
+                <AccordionTrigger className="font-medium hover:no-underline text-left">9. Does PixelPress store any user data?</AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">
+                  No. PixelPress does not collect, store, or track your images or personal data.
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="item-10" className="border border-border/60 rounded-xl px-4 bg-white/50 dark:bg-slate-800/50 data-[state=open]:bg-white dark:data-[state=open]:bg-slate-800 data-[state=open]:shadow-md transition-all">
+                <AccordionTrigger className="font-medium hover:no-underline text-left">10. Why should I compress images?</AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">
+                  Compressed images load faster, use less bandwidth, and improve website performance and user experience.
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
