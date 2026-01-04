@@ -2,10 +2,11 @@ User-agent: *
 Allow: /
 Disallow: /api/
 
-Sitemap: https://pixelpress.replit.dev/sitemap.xml
+Sitemap: https://pixelpress.replit.app/sitemap.xml
 
-# All tool pages are crawlable
 Allow: /compress-png
 Allow: /compress-jpeg
 Allow: /compress-webp
 Allow: /resize-image
+Allow: /privacy
+Allow: /terms
