@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+
+Sitemap: https://pixelpress.replit.app/sitemap.xml
+
+Allow: /compress-png
+Allow: /compress-jpeg
+Allow: /compress-webp
+Allow: /resize-image
+Allow: /privacy
+Allow: /terms
