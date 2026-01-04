@@ -104,15 +104,15 @@ function selectFormat(
 }
 
 /**
- * Force convert image to a specific format using canvas.
- * This ensures the output format is ALWAYS the selected format.
+ * Force convert image to a specific format using canvas.toBlob().
+ * Ensures proper MIME type, quality range, and AVIF fallback.
  */
 async function forceConvertFormat(
   blob: Blob,
   targetFormat: string,
   quality: number
 ): Promise<Blob> {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     const reader = new FileReader();
     
     reader.onload = (e) => {
@@ -121,12 +121,10 @@ async function forceConvertFormat(
         try {
           const canvas = document.createElement("canvas");
           
-          // Validate dimensions before setting (prevent invalid canvas size errors)
           const width = Math.max(1, Math.floor(img.width) || 1);
           const height = Math.max(1, Math.floor(img.height) || 1);
           
           if (width > 65536 || height > 65536) {
-            // Canvas size limit, use original blob
             resolve(blob);
             return;
           }
@@ -142,16 +140,49 @@ async function forceConvertFormat(
           
           ctx.drawImage(img, 0, 0);
           
-          // Force conversion to target format
-          canvas.toBlob((convertedBlob) => {
-            if (convertedBlob) {
-              resolve(convertedBlob);
-            } else {
-              resolve(blob);
+          // PNG uses lossless compression - quality param should be undefined
+          // JPEG/WebP use quality in range 0-1
+          const qualityParam = targetFormat === "image/png" ? undefined : Math.min(1, Math.max(0, quality));
+          
+          // Helper to create blob with validation
+          const createBlob = (format: string, q: number | undefined): Promise<Blob | null> => {
+            return new Promise((res) => {
+              canvas.toBlob((result) => {
+                // Validate blob: must exist, have correct type, and have content
+                if (result && result.size > 0 && result.type === format) {
+                  res(result);
+                } else {
+                  res(null);
+                }
+              }, format, q);
+            });
+          };
+          
+          // Try target format first
+          createBlob(targetFormat, qualityParam).then((result) => {
+            if (result) {
+              resolve(result);
+              return;
             }
-          }, targetFormat, quality);
+            
+            // AVIF fallback to WebP
+            if (targetFormat === "image/avif") {
+              createBlob("image/webp", qualityParam).then((webpResult) => {
+                if (webpResult) {
+                  resolve(webpResult);
+                } else {
+                  // Final fallback: return original
+                  resolve(blob);
+                }
+              });
+              return;
+            }
+            
+            // For other formats that fail, return original
+            resolve(blob);
+          });
+          
         } catch (err) {
-          // If any error during conversion, use original blob
           console.warn("Canvas conversion error:", err);
           resolve(blob);
         }
@@ -395,18 +426,25 @@ export function useImageCompressor() {
         finalBlob = originalFile;
       }
       
-      // Update the extension if format changed
-      const getExtension = (mime: string) => {
-        if (mime === "image/png") return "png";
-        if (mime === "image/webp") return "webp";
-        return "jpg";
+      // Update the extension if format changed - must match MIME type exactly
+      const getExtension = (mime: string): string => {
+        switch (mime) {
+          case "image/png": return "png";
+          case "image/webp": return "webp";
+          case "image/avif": return "avif";
+          case "image/jpeg": return "jpg";
+          default: return "jpg";
+        }
       };
       
+      // VALIDATE: Ensure blob has valid type before download
+      const blobType = finalBlob.type || "image/jpeg";
       const baseName = originalFile.name.replace(/\.[^/.]+$/, "");
-      const finalName = `${baseName}.${getExtension(finalBlob.type)}`;
+      const finalName = `${baseName}.${getExtension(blobType)}`;
 
+      // Create file with validated MIME type
       setCompressedFile(new File([finalBlob], finalName, {
-        type: finalBlob.type,
+        type: blobType,
         lastModified: Date.now(),
       }));
       
