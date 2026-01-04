@@ -338,42 +338,58 @@ export function useImageCompressor() {
       
       setProgress(30);
 
-      // Compress with user's chosen format
-      const options = {
-        maxSizeMB: 50,
-        maxWidthOrHeight: settings.width || settings.height || undefined,
-        useWebWorker: true,
-        initialQuality: finalQuality,
-        fileType: bestFormat,
-        onProgress: (p: number) => setProgress(Math.round(30 + (p * 0.6))), // 30-90%
-      };
+      // 3. OPTIMIZED COMPRESSION FOR SMALL IMAGES
+      // If the image is already very small (< 50KB), we need to be extremely careful.
+      // We'll use a direct approach to avoid overhead from the compression library.
+      
+      let finalBlob: Blob;
+      
+      if (originalFile.size < 50 * 1024 && settings.quality > 50 && !settings.width && !settings.height) {
+        // For tiny images, just use forceConvertFormat directly to avoid library overhead
+        finalBlob = await forceConvertFormat(originalFile, bestFormat, finalQuality);
+      } else {
+        // Compress with user's chosen format
+        const options = {
+          maxSizeMB: 50,
+          maxWidthOrHeight: settings.width || settings.height || undefined,
+          useWebWorker: true,
+          initialQuality: finalQuality,
+          fileType: "image/jpeg", // Library handles JPEG best, we convert after
+          onProgress: (p: number) => setProgress(Math.round(30 + (p * 0.6))), // 30-90%
+        };
 
-      // If both dimensions specified and aspect ratio not maintained, 
-      // or if height is specified, we use our custom resize first
-      let fileToCompress: File | Blob = originalFile;
-      if ((settings.width && settings.height && !settings.maintainAspectRatio) || settings.height) {
-        fileToCompress = await resizeImage(
-          originalFile, 
-          settings.width, 
-          settings.height, 
-          settings.maintainAspectRatio
+        // If both dimensions specified and aspect ratio not maintained, 
+        // or if height is specified, we use our custom resize first
+        let fileToCompress: File | Blob = originalFile;
+        if ((settings.width && settings.height && !settings.maintainAspectRatio) || settings.height) {
+          fileToCompress = await resizeImage(
+            originalFile, 
+            settings.width, 
+            settings.height, 
+            settings.maintainAspectRatio
+          );
+        }
+
+        const compressed = await imageCompression(fileToCompress as File, options);
+        setProgress(85);
+
+        // 4. ENFORCE FORMAT AND METADATA INTEGRITY
+        // We use canvas to re-draw the image and convert it. This strips any corrupted
+        // or incompatible metadata that Photoshop/Photopea might choke on.
+        // For very small images, we compare sizes and keep the smallest.
+        const blobToFinalize = (compressed.size < originalFile.size * 1.02) ? compressed : originalFile;
+        
+        finalBlob = await forceConvertFormat(
+          blobToFinalize, 
+          bestFormat, 
+          finalQuality
         );
       }
-
-      let compressed = await imageCompression(fileToCompress as File, options);
       
-      setProgress(85);
-
-      // 3. ENFORCE FORMAT AND METADATA INTEGRITY
-      // We use canvas to re-draw the image and convert it. This strips any corrupted
-      // or incompatible metadata that Photoshop/Photopea might choke on.
-      const blobToFinalize = (compressed.size < originalFile.size * 1.05) ? compressed : originalFile;
-      
-      const finalBlob = await forceConvertFormat(
-        blobToFinalize, 
-        bestFormat, 
-        finalQuality
-      );
+      // FINAL SIZE PROTECTION: If somehow it's still bigger, and it's same format, use original
+      if (finalBlob.size >= originalFile.size && finalBlob.type === originalFile.type && !settings.width && !settings.height) {
+        finalBlob = originalFile;
+      }
       
       // Update the extension if format changed
       const getExtension = (mime: string) => {
