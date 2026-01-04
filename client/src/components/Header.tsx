@@ -1,14 +1,24 @@
-import { Zap, Mail, ChevronDown } from "lucide-react";
+import { Zap, Mail, ChevronDown, Menu } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
-import { memo } from "react";
+import { memo, useState } from "react";
 
 export const Header = memo(function Header() {
+  const [isOpen, setIsOpen] = useState(false);
+
   return (
     <header className="fixed top-0 left-0 right-0 z-50 px-4 py-4 md:px-6">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
@@ -23,6 +33,7 @@ export const Header = memo(function Header() {
           </div>
         </Link>
         
+        {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center gap-4 glass-panel px-6 py-2 rounded-full text-sm font-medium text-muted-foreground">
           <DropdownMenu>
             <DropdownMenuTrigger className="flex items-center gap-1 hover:text-foreground transition-colors outline-none">
@@ -48,6 +59,44 @@ export const Header = memo(function Header() {
             Contact
           </a>
         </nav>
+
+        {/* Mobile Navigation */}
+        <div className="md:hidden">
+          <Sheet open={isOpen} onOpenChange={setIsOpen}>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="glass-panel rounded-full w-10 h-10">
+                <Menu className="w-6 h-6" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-[300px] sm:w-[400px]">
+              <SheetHeader>
+                <SheetTitle className="text-left font-display font-bold text-xl flex items-center gap-2">
+                  <div className="bg-primary/10 p-1.5 rounded-full text-primary">
+                    <Zap className="w-5 h-5 fill-current" />
+                  </div>
+                  Pixel<span className="text-primary">Press</span>
+                </SheetTitle>
+              </SheetHeader>
+              <div className="flex flex-col gap-6 mt-8">
+                <div className="flex flex-col gap-4">
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Tools</h4>
+                  <Link href="/compress-png" onClick={() => setIsOpen(false)} className="text-lg font-medium hover:text-primary transition-colors">Compress PNG</Link>
+                  <Link href="/compress-jpeg" onClick={() => setIsOpen(false)} className="text-lg font-medium hover:text-primary transition-colors">Compress JPEG</Link>
+                  <Link href="/compress-webp" onClick={() => setIsOpen(false)} className="text-lg font-medium hover:text-primary transition-colors">Compress WebP</Link>
+                  <Link href="/resize-image" onClick={() => setIsOpen(false)} className="text-lg font-medium hover:text-primary transition-colors">Resize Image</Link>
+                </div>
+                <div className="flex flex-col gap-4">
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Support</h4>
+                  <a href="#faq" onClick={() => setIsOpen(false)} className="text-lg font-medium hover:text-primary transition-colors">FAQ</a>
+                  <a href="mailto:pixelpresshelp4u@gmail.com" className="flex items-center gap-2 text-lg font-medium hover:text-primary transition-colors">
+                    <Mail className="w-5 h-5" />
+                    Contact
+                  </a>
+                </div>
+              </div>
+            </SheetContent>
+          </Sheet>
+        </div>
       </div>
     </header>
   );
