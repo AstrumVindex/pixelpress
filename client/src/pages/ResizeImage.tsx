@@ -18,19 +18,6 @@ import {
 } from "@/components/ui/accordion";
 
 export default function ResizeImage() {
-  const [cropDialogOpen, setCropDialogOpen] = useState(false);
-  const [originalDimensions, setOriginalDimensions] = useState<{ width: number; height: number }>();
-
-  useEffect(() => {
-    if (originalFile) {
-      const img = new Image();
-      img.onload = () => {
-        setOriginalDimensions({ width: img.width, height: img.height });
-      };
-      img.src = URL.createObjectURL(originalFile);
-    }
-  }, [originalFile]);
-
   const {
     originalFile,
     compressedFile,
@@ -43,6 +30,19 @@ export default function ResizeImage() {
     handleFileSelect,
     reset
   } = useImageCompressor();
+
+  const [cropDialogOpen, setCropDialogOpen] = useState(false);
+  const [originalDimensions, setOriginalDimensions] = useState<{ width: number; height: number }>();
+
+  useEffect(() => {
+    if (originalFile) {
+      const img = new Image();
+      img.onload = () => {
+        setOriginalDimensions({ width: img.width, height: img.height });
+      };
+      img.src = URL.createObjectURL(originalFile);
+    }
+  }, [originalFile]);
 
   // On resize page, default compression to OFF when file is selected
   useEffect(() => {

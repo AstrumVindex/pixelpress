@@ -8,6 +8,7 @@ import { Settings2, Maximize, Scissors, AlertCircle, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
+import { useEffect } from "react";
 
 interface ResizeControlsProps {
   settings: CompressionSettings;
@@ -27,9 +28,11 @@ export function ResizeControls({ settings, onChange, onOpenCrop, originalDimensi
   );
 
   // Auto-disable compression during upscaling
-  if (isUpscaling && settings.enableCompression !== false) {
-    updateSetting({ enableCompression: false });
-  }
+  useEffect(() => {
+    if (isUpscaling && settings.enableCompression !== false) {
+      updateSetting({ enableCompression: false });
+    }
+  }, [isUpscaling, settings.enableCompression]);
 
   return (
     <div className="space-y-8">
@@ -119,9 +122,9 @@ export function ResizeControls({ settings, onChange, onOpenCrop, originalDimensi
           </div>
           <Switch 
             id="enable-compression"
-            checked={settings.enableCompression}
+            checked={!!settings.enableCompression}
             onCheckedChange={(checked) => updateSetting({ enableCompression: checked })}
-            disabled={isUpscaling}
+            disabled={!!isUpscaling}
             className="scale-90"
           />
         </div>

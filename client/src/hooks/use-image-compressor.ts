@@ -415,7 +415,10 @@ export function useImageCompressor() {
   const [compressedFile, setCompressedFile] = useState<File | null>(null);
   const [isCompressing, setIsCompressing] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [settings, setSettings] = useState<CompressionSettings>(PRESETS[0].settings);
+  const [settings, setSettings] = useState<CompressionSettings>({
+    ...PRESETS[0].settings,
+    enableCompression: true
+  });
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [originalPreviewUrl, setOriginalPreviewUrl] = useState<string | null>(null);
   
