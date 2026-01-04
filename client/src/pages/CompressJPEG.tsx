@@ -167,24 +167,54 @@ export default function CompressJPEG() {
 
           {/* FAQ Section */}
           <section className="max-w-3xl mx-auto pt-16">
-            <h2 className="text-3xl font-display font-bold mb-8 text-center">Frequently Asked Questions</h2>
+            <h2 className="text-3xl font-display font-bold mb-8 text-center">FAQs</h2>
             <Accordion type="single" collapsible className="w-full space-y-4">
-              <AccordionItem value="item-1" className="border border-border/60 rounded-xl px-4 bg-white/50 data-[state=open]:bg-white data-[state=open]:shadow-md transition-all">
-                <AccordionTrigger className="font-medium hover:no-underline">Is my data safe?</AccordionTrigger>
+              <AccordionItem value="item-1" className="border border-border/60 rounded-xl px-4 bg-white/50 dark:bg-slate-800/50 data-[state=open]:bg-white dark:data-[state=open]:bg-slate-800 data-[state=open]:shadow-md transition-all">
+                <AccordionTrigger className="font-medium hover:no-underline text-left">1. What happens when I compress a JPEG image?</AccordionTrigger>
                 <AccordionContent className="text-muted-foreground">
-                  Absolutely. Unlike other tools that upload your images to a server, PixelPress runs entirely in your web browser. Your images never leave your computer.
+                  JPEG compression reduces file size by optimizing image data while keeping the image visually acceptable.
                 </AccordionContent>
               </AccordionItem>
-              <AccordionItem value="item-2" className="border border-border/60 rounded-xl px-4 bg-white/50 data-[state=open]:bg-white data-[state=open]:shadow-md transition-all">
-                <AccordionTrigger className="font-medium hover:no-underline">Does it support bulk compression?</AccordionTrigger>
+              <AccordionItem value="item-2" className="border border-border/60 rounded-xl px-4 bg-white/50 dark:bg-slate-800/50 data-[state=open]:bg-white dark:data-[state=open]:bg-slate-800 data-[state=open]:shadow-md transition-all">
+                <AccordionTrigger className="font-medium hover:no-underline text-left">2. Is JPEG compression lossy?</AccordionTrigger>
                 <AccordionContent className="text-muted-foreground">
-                  Currently we focus on single-image optimization to provide the best possible visual comparison tools. Bulk processing is on our roadmap!
+                  Yes. JPEG compression is lossy, but PixelPress balances compression and quality to minimize visible loss.
                 </AccordionContent>
               </AccordionItem>
-              <AccordionItem value="item-3" className="border border-border/60 rounded-xl px-4 bg-white/50 data-[state=open]:bg-white data-[state=open]:shadow-md transition-all">
-                <AccordionTrigger className="font-medium hover:no-underline">Which formats are supported?</AccordionTrigger>
+              <AccordionItem value="item-3" className="border border-border/60 rounded-xl px-4 bg-white/50 dark:bg-slate-800/50 data-[state=open]:bg-white dark:data-[state=open]:bg-slate-800 data-[state=open]:shadow-md transition-all">
+                <AccordionTrigger className="font-medium hover:no-underline text-left">3. Will my JPEG look blurry after compression?</AccordionTrigger>
                 <AccordionContent className="text-muted-foreground">
-                  We support input and output for JPG, PNG, and WebP formats. We recommend WebP for the best balance of quality and file size on the web.
+                  In most cases, no. PixelPress maintains good visual quality even at smaller file sizes.
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="item-4" className="border border-border/60 rounded-xl px-4 bg-white/50 dark:bg-slate-800/50 data-[state=open]:bg-white dark:data-[state=open]:bg-slate-800 data-[state=open]:shadow-md transition-all">
+                <AccordionTrigger className="font-medium hover:no-underline text-left">4. Are original JPEG images stored anywhere?</AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">
+                  No. All JPEG processing is done locally in your browser for maximum privacy.
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="item-5" className="border border-border/60 rounded-xl px-4 bg-white/50 dark:bg-slate-800/50 data-[state=open]:bg-white dark:data-[state=open]:bg-slate-800 data-[state=open]:shadow-md transition-all">
+                <AccordionTrigger className="font-medium hover:no-underline text-left">5. When should I use JPEG compression?</AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">
+                  JPEG is best for photos, portraits, and complex images with many colors.
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="item-6" className="border border-border/60 rounded-xl px-4 bg-white/50 dark:bg-slate-800/50 data-[state=open]:bg-white dark:data-[state=open]:bg-slate-800 data-[state=open]:shadow-md transition-all">
+                <AccordionTrigger className="font-medium hover:no-underline text-left">6. Can I control the compression level?</AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">
+                  Depending on the tool settings, you may adjust quality to balance size and clarity.
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="item-7" className="border border-border/60 rounded-xl px-4 bg-white/50 dark:bg-slate-800/50 data-[state=open]:bg-white dark:data-[state=open]:bg-slate-800 data-[state=open]:shadow-md transition-all">
+                <AccordionTrigger className="font-medium hover:no-underline text-left">7. Is JPEG compression suitable for social media?</AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">
+                  Yes. Compressed JPEGs are perfect for faster uploads and sharing on social platforms.
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="item-8" className="border border-border/60 rounded-xl px-4 bg-white/50 dark:bg-slate-800/50 data-[state=open]:bg-white dark:data-[state=open]:bg-slate-800 data-[state=open]:shadow-md transition-all">
+                <AccordionTrigger className="font-medium hover:no-underline text-left">8. Does JPEG compression remove metadata?</AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">
+                  Some metadata may be removed to reduce file size and protect privacy.
                 </AccordionContent>
               </AccordionItem>
             </Accordion>

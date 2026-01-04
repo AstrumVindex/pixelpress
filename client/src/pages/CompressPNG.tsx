@@ -167,24 +167,54 @@ export default function CompressPNG() {
 
           {/* FAQ Section */}
           <section className="max-w-3xl mx-auto pt-16">
-            <h2 className="text-3xl font-display font-bold mb-8 text-center">Frequently Asked Questions</h2>
+            <h2 className="text-3xl font-display font-bold mb-8 text-center">FAQs</h2>
             <Accordion type="single" collapsible className="w-full space-y-4">
-              <AccordionItem value="item-1" className="border border-border/60 rounded-xl px-4 bg-white/50 data-[state=open]:bg-white data-[state=open]:shadow-md transition-all">
-                <AccordionTrigger className="font-medium hover:no-underline">Is my data safe?</AccordionTrigger>
+              <AccordionItem value="item-1" className="border border-border/60 rounded-xl px-4 bg-white/50 dark:bg-slate-800/50 data-[state=open]:bg-white dark:data-[state=open]:bg-slate-800 data-[state=open]:shadow-md transition-all">
+                <AccordionTrigger className="font-medium hover:no-underline text-left">1. What is PNG image compression?</AccordionTrigger>
                 <AccordionContent className="text-muted-foreground">
-                  Absolutely. Unlike other tools that upload your images to a server, PixelPress runs entirely in your web browser. Your images never leave your computer.
+                  PNG compression reduces the file size of a PNG image while keeping transparency and visual quality intact.
                 </AccordionContent>
               </AccordionItem>
-              <AccordionItem value="item-2" className="border border-border/60 rounded-xl px-4 bg-white/50 data-[state=open]:bg-white data-[state=open]:shadow-md transition-all">
-                <AccordionTrigger className="font-medium hover:no-underline">Does it support bulk compression?</AccordionTrigger>
+              <AccordionItem value="item-2" className="border border-border/60 rounded-xl px-4 bg-white/50 dark:bg-slate-800/50 data-[state=open]:bg-white dark:data-[state=open]:bg-slate-800 data-[state=open]:shadow-md transition-all">
+                <AccordionTrigger className="font-medium hover:no-underline text-left">2. Will transparency be preserved after PNG compression?</AccordionTrigger>
                 <AccordionContent className="text-muted-foreground">
-                  Currently we focus on single-image optimization to provide the best possible visual comparison tools. Bulk processing is on our roadmap!
+                  Yes. PixelPress preserves alpha transparency when compressing PNG images.
                 </AccordionContent>
               </AccordionItem>
-              <AccordionItem value="item-3" className="border border-border/60 rounded-xl px-4 bg-white/50 data-[state=open]:bg-white data-[state=open]:shadow-md transition-all">
-                <AccordionTrigger className="font-medium hover:no-underline">Which formats are supported?</AccordionTrigger>
+              <AccordionItem value="item-3" className="border border-border/60 rounded-xl px-4 bg-white/50 dark:bg-slate-800/50 data-[state=open]:bg-white dark:data-[state=open]:bg-slate-800 data-[state=open]:shadow-md transition-all">
+                <AccordionTrigger className="font-medium hover:no-underline text-left">3. Is PNG compression lossless?</AccordionTrigger>
                 <AccordionContent className="text-muted-foreground">
-                  We support input and output for JPG, PNG, and WebP formats. We recommend WebP for the best balance of quality and file size on the web.
+                  PixelPress uses lossless or near-lossless techniques for PNGs, so visual quality remains unchanged in most cases.
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="item-4" className="border border-border/60 rounded-xl px-4 bg-white/50 dark:bg-slate-800/50 data-[state=open]:bg-white dark:data-[state=open]:bg-slate-800 data-[state=open]:shadow-md transition-all">
+                <AccordionTrigger className="font-medium hover:no-underline text-left">4. Are PNG images uploaded to a server?</AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">
+                  No. PNG compression happens entirely in your browser. Images are never uploaded or stored.
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="item-5" className="border border-border/60 rounded-xl px-4 bg-white/50 dark:bg-slate-800/50 data-[state=open]:bg-white dark:data-[state=open]:bg-slate-800 data-[state=open]:shadow-md transition-all">
+                <AccordionTrigger className="font-medium hover:no-underline text-left">5. When should I use PNG instead of JPEG?</AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">
+                  PNG is best for images with text, logos, icons, or transparency, where sharp edges are important.
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="item-6" className="border border-border/60 rounded-xl px-4 bg-white/50 dark:bg-slate-800/50 data-[state=open]:bg-white dark:data-[state=open]:bg-slate-800 data-[state=open]:shadow-md transition-all">
+                <AccordionTrigger className="font-medium hover:no-underline text-left">6. Does PNG compression work on mobile?</AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">
+                  Yes. You can compress PNG images on mobile devices using modern browsers.
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="item-7" className="border border-border/60 rounded-xl px-4 bg-white/50 dark:bg-slate-800/50 data-[state=open]:bg-white dark:data-[state=open]:bg-slate-800 data-[state=open]:shadow-md transition-all">
+                <AccordionTrigger className="font-medium hover:no-underline text-left">7. Is there a file size limit for PNG compression?</AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">
+                  There is no fixed limit, but very large PNG files may take longer depending on your device.
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="item-8" className="border border-border/60 rounded-xl px-4 bg-white/50 dark:bg-slate-800/50 data-[state=open]:bg-white dark:data-[state=open]:bg-slate-800 data-[state=open]:shadow-md transition-all">
+                <AccordionTrigger className="font-medium hover:no-underline text-left">8. Can I use compressed PNGs for websites?</AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">
+                  Yes. Compressed PNGs are ideal for websites and help improve page load speed.
                 </AccordionContent>
               </AccordionItem>
             </Accordion>

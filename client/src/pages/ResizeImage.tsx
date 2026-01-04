@@ -189,24 +189,54 @@ export default function ResizeImage() {
 
           {/* FAQ Section */}
           <section className="max-w-3xl mx-auto pt-16">
-            <h2 className="text-3xl font-display font-bold mb-8 text-center">Frequently Asked Questions</h2>
+            <h2 className="text-3xl font-display font-bold mb-8 text-center">FAQs</h2>
             <Accordion type="single" collapsible className="w-full space-y-4">
-              <AccordionItem value="item-1" className="border border-border/60 rounded-xl px-4 bg-white/50 data-[state=open]:bg-white data-[state=open]:shadow-md transition-all">
-                <AccordionTrigger className="font-medium hover:no-underline">Is my data safe?</AccordionTrigger>
+              <AccordionItem value="item-1" className="border border-border/60 rounded-xl px-4 bg-white/50 dark:bg-slate-800/50 data-[state=open]:bg-white dark:data-[state=open]:bg-slate-800 data-[state=open]:shadow-md transition-all">
+                <AccordionTrigger className="font-medium hover:no-underline text-left">1. What does image resizing mean?</AccordionTrigger>
                 <AccordionContent className="text-muted-foreground">
-                  Absolutely. Unlike other tools that upload your images to a server, PixelPress runs entirely in your web browser. Your images never leave your computer.
+                  Image resizing changes the dimensions (width and height) of an image without changing its format.
                 </AccordionContent>
               </AccordionItem>
-              <AccordionItem value="item-2" className="border border-border/60 rounded-xl px-4 bg-white/50 data-[state=open]:bg-white data-[state=open]:shadow-md transition-all">
-                <AccordionTrigger className="font-medium hover:no-underline">Does it support bulk compression?</AccordionTrigger>
+              <AccordionItem value="item-2" className="border border-border/60 rounded-xl px-4 bg-white/50 dark:bg-slate-800/50 data-[state=open]:bg-white dark:data-[state=open]:bg-slate-800 data-[state=open]:shadow-md transition-all">
+                <AccordionTrigger className="font-medium hover:no-underline text-left">2. Does resizing reduce image quality?</AccordionTrigger>
                 <AccordionContent className="text-muted-foreground">
-                  Currently we focus on single-image optimization to provide the best possible visual comparison tools. Bulk processing is on our roadmap!
+                  Reducing dimensions may slightly affect quality, but PixelPress minimizes distortion.
                 </AccordionContent>
               </AccordionItem>
-              <AccordionItem value="item-3" className="border border-border/60 rounded-xl px-4 bg-white/50 data-[state=open]:bg-white data-[state=open]:shadow-md transition-all">
-                <AccordionTrigger className="font-medium hover:no-underline">Which formats are supported?</AccordionTrigger>
+              <AccordionItem value="item-3" className="border border-border/60 rounded-xl px-4 bg-white/50 dark:bg-slate-800/50 data-[state=open]:bg-white dark:data-[state=open]:bg-slate-800 data-[state=open]:shadow-md transition-all">
+                <AccordionTrigger className="font-medium hover:no-underline text-left">3. Can I resize images without compressing them?</AccordionTrigger>
                 <AccordionContent className="text-muted-foreground">
-                  We support input and output for JPG, PNG, and WebP formats. We recommend WebP for the best balance of quality and file size on the web.
+                  Yes. You can resize images independently without applying compression.
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="item-4" className="border border-border/60 rounded-xl px-4 bg-white/50 dark:bg-slate-800/50 data-[state=open]:bg-white dark:data-[state=open]:bg-slate-800 data-[state=open]:shadow-md transition-all">
+                <AccordionTrigger className="font-medium hover:no-underline text-left">4. Which formats can be resized?</AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">
+                  PixelPress supports resizing PNG, JPEG, and WebP images.
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="item-5" className="border border-border/60 rounded-xl px-4 bg-white/50 dark:bg-slate-800/50 data-[state=open]:bg-white dark:data-[state=open]:bg-slate-800 data-[state=open]:shadow-md transition-all">
+                <AccordionTrigger className="font-medium hover:no-underline text-left">5. Is aspect ratio maintained during resize?</AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">
+                  You can choose to lock or unlock aspect ratio depending on your needs.
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="item-6" className="border border-border/60 rounded-xl px-4 bg-white/50 dark:bg-slate-800/50 data-[state=open]:bg-white dark:data-[state=open]:bg-slate-800 data-[state=open]:shadow-md transition-all">
+                <AccordionTrigger className="font-medium hover:no-underline text-left">6. Are resized images processed online?</AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">
+                  No. Resizing is done locally in your browser for privacy and speed.
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="item-7" className="border border-border/60 rounded-xl px-4 bg-white/50 dark:bg-slate-800/50 data-[state=open]:bg-white dark:data-[state=open]:bg-slate-800 data-[state=open]:shadow-md transition-all">
+                <AccordionTrigger className="font-medium hover:no-underline text-left">7. Can I resize images for social media?</AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">
+                  Yes. Image resizing is ideal for preparing images for social media, websites, and profiles.
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="item-8" className="border border-border/60 rounded-xl px-4 bg-white/50 dark:bg-slate-800/50 data-[state=open]:bg-white dark:data-[state=open]:bg-slate-800 data-[state=open]:shadow-md transition-all">
+                <AccordionTrigger className="font-medium hover:no-underline text-left">8. Will resizing remove metadata?</AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">
+                  Some metadata may be removed during processing to reduce file size.
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
