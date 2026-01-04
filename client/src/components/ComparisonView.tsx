@@ -47,35 +47,33 @@ export function ComparisonView({
         // Try to fetch the blob from the compressedUrl
         const response = await fetch(compressedUrl);
         const blob = await response.blob();
+        
+        // Ensure we have a valid blob and type
         const mimeType = blob.type || "image/png";
         const extension = mimeType.split("/")[1] || "png";
+        const file = new File([blob], `compressed-image.${extension}`, { type: mimeType });
 
-        const file = new File(
-          [blob],
-          `pixelpress-compressed.${extension}`,
-          { type: mimeType }
-        );
-
-
+        // Check if file sharing is supported
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
-  // Image share (WhatsApp, Telegram, etc.)
-  await navigator.share({
-    title: "PixelPress - Image Compression",
-    text: text,
-    files: [file]
-  });
-} else {
-  // Text-only share (Email clients)
-  await navigator.share({
-    title: "PixelPress - Image Compression",
-    text: `${text}\n\n${window.location.origin}`
-  });
-}
-
+          await navigator.share({
+            title: 'PixelPress - Image Compression',
+            text: text,
+            files: [file],
+            url: window.location.origin
+          });
+        } else {
+          // Fallback to text + link share
+          await navigator.share({
+            title: 'PixelPress - Image Compression',
+            text: text,
+            url: window.location.origin
+          });
+        }
       } else {
         throw new Error('Share API not available');
       }
     } catch (err) {
+      console.error("Share failed:", err);
       await navigator.clipboard.writeText(text);
       toast({
         title: "Copied to clipboard!",
