@@ -131,7 +131,7 @@ export default function PixelPressConverter() {
       canvas.width = viewport.width;
 
       if (!context) throw new Error('Canvas context missing');
-      await page.render({ canvasContext: context, viewport: viewport }).promise;
+      await page.render({ canvasContext: context, viewport: viewport, canvas: canvas }).promise;
 
       const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.9));
       if (blob) {
