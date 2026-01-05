@@ -23,6 +23,7 @@ export const Footer = memo(function Footer() {
               <li><Link href="/compress-png" className="hover:text-primary transition-colors">Compress PNG</Link></li>
               <li><Link href="/compress-jpeg" className="hover:text-primary transition-colors">Compress JPEG</Link></li>
               <li><Link href="/compress-webp" className="hover:text-primary transition-colors">Convert to WebP</Link></li>
+              <li><Link href="/converter" className="hover:text-primary transition-colors">File Converter</Link></li>
               <li><Link href="/resize-image" className="hover:text-primary transition-colors">Resize Image</Link></li>
             </ul>
           </div>

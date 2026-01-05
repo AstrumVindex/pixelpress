@@ -37,7 +37,7 @@ export const Header = memo(function Header() {
         <nav className="hidden md:flex items-center gap-4 glass-panel px-6 py-2 rounded-full text-sm font-medium text-muted-foreground">
           <DropdownMenu>
             <DropdownMenuTrigger className="flex items-center gap-1 hover:text-foreground transition-colors outline-none">
-              Tools <ChevronDown className="w-4 h-4" />
+              Compress Images <ChevronDown className="w-4 h-4" />
             </DropdownMenuTrigger>
             <DropdownMenuContent className="rounded-xl border-border bg-white/80 backdrop-blur-md dark:bg-slate-900/80">
               <DropdownMenuItem asChild>
@@ -50,7 +50,7 @@ export const Header = memo(function Header() {
                 <Link href="/compress-webp" className="cursor-pointer">Compress WebP</Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href="/converter" className="cursor-pointer">Image Converter</Link>
+                <Link href="/converter" className="cursor-pointer">File Converter</Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link href="/resize-image" className="cursor-pointer">Resize Image</Link>
@@ -58,7 +58,7 @@ export const Header = memo(function Header() {
             </DropdownMenuContent>
           </DropdownMenu>
           
-          <Link href="/converter" className="hover:text-foreground transition-colors">Converter</Link>
+          <Link href="/converter" className="hover:text-foreground transition-colors">File Converter</Link>
           <a href="#faq" className="hover:text-foreground transition-colors">FAQ</a>
           <a href="mailto:pixelpresshelp4u@gmail.com" className="flex items-center gap-2 hover:text-foreground transition-colors">
             <Mail className="w-4 h-4" />
@@ -85,11 +85,11 @@ export const Header = memo(function Header() {
               </SheetHeader>
               <div className="flex flex-col gap-6 mt-8">
                 <div className="flex flex-col gap-4">
-                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Tools</h4>
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Compress Images</h4>
                   <Link href="/compress-png" onClick={() => setIsOpen(false)} className="text-lg font-medium hover:text-primary transition-colors">Compress PNG</Link>
                   <Link href="/compress-jpeg" onClick={() => setIsOpen(false)} className="text-lg font-medium hover:text-primary transition-colors">Compress JPEG</Link>
                   <Link href="/compress-webp" onClick={() => setIsOpen(false)} className="text-lg font-medium hover:text-primary transition-colors">Compress WebP</Link>
-                  <Link href="/converter" onClick={() => setIsOpen(false)} className="text-lg font-medium hover:text-primary transition-colors">Image Converter</Link>
+                  <Link href="/converter" onClick={() => setIsOpen(false)} className="text-lg font-medium hover:text-primary transition-colors">File Converter</Link>
                   <Link href="/resize-image" onClick={() => setIsOpen(false)} className="text-lg font-medium hover:text-primary transition-colors">Resize Image</Link>
                 </div>
                 <div className="flex flex-col gap-4">
