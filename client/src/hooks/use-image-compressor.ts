@@ -436,10 +436,20 @@ export function useImageCompressor() {
       return;
     }
 
+    // Fully reset previous state before setting new file
+    setCompressedFile(null);
+    setProgress(0);
+    setPreviewUrl((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return null;
+    });
+    setOriginalPreviewUrl((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return null;
+    });
+
     setOriginalFile(file);
     setOriginalPreviewUrl(URL.createObjectURL(file));
-    setCompressedFile(null);
-    setPreviewUrl(null);
   }, [toast]);
 
   // Compress image with smart logic

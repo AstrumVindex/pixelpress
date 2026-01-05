@@ -36,11 +36,15 @@ export default function ResizeImage() {
 
   useEffect(() => {
     if (originalFile) {
+      const url = URL.createObjectURL(originalFile);
       const img = new Image();
       img.onload = () => {
         setOriginalDimensions({ width: img.width, height: img.height });
+        URL.revokeObjectURL(url);
       };
-      img.src = URL.createObjectURL(originalFile);
+      img.src = url;
+    } else {
+      setOriginalDimensions(undefined);
     }
   }, [originalFile]);
 
