@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Helmet } from "react-helmet";
 import { CloudUpload, Zap, FileText, X, AlertCircle, Images, Download, ChevronDown } from 'lucide-react';
 import * as pdfjsLib from 'pdfjs-dist';
@@ -8,11 +8,13 @@ import { saveAs } from 'file-saver';
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 
-// --- PDF.js Worker Setup ---
-pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+// --- STABLE WORKER SETUP ---
+// We explicitly use version 3.11.174 to match the npm install recommended above.
+// This prevents the "fake worker" and "version mismatch" errors.
+pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js`;
 
 export default function PixelPressConverter() {
   const [file, setFile] = useState<File | null>(null);
@@ -52,7 +54,7 @@ export default function PixelPressConverter() {
     setFile(selectedFile);
 
     if (selectedFile.type === 'application/pdf') {
-      setTargetFormat('jpg_zip'); 
+      setTargetFormat('jpg'); 
     } else if (selectedFile.type.startsWith('image/')) {
       setTargetFormat(selectedFile.type === 'image/jpeg' ? 'pdf' : 'jpeg');
     }
@@ -114,16 +116,9 @@ export default function PixelPressConverter() {
       URL.revokeObjectURL(url);
   };
 
-  const convertPdfToJpgZip = async () => {
-    if (!file) return;
-    const zip = new JSZip();
-    const arrayBuffer = await file.arrayBuffer();
-    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-    const totalPages = pdf.numPages;
-
-    for (let i = 1; i <= totalPages; i++) {
-      setProgressTxt(`Processing page ${i} of ${totalPages}...`);
-      const page = await pdf.getPage(i);
+  const renderPageToBlob = async (pdf: any, pageNum: number, totalPages: number): Promise<Blob | null> => {
+      setProgressTxt(`Rendering page ${pageNum}/${totalPages}...`);
+      const page = await pdf.getPage(pageNum);
       const viewport = page.getViewport({ scale: 2 });
       const canvas = document.createElement('canvas');
       const context = canvas.getContext('2d');
@@ -132,18 +127,37 @@ export default function PixelPressConverter() {
 
       if (!context) throw new Error('Canvas context missing');
       await page.render({ canvasContext: context, viewport: viewport, canvas: canvas }).promise;
+      return new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.9));
+  };
 
-      const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.9));
-      if (blob) {
-          const fileName = `page-${String(i).padStart(2, '0')}.jpg`;
-          zip.file(fileName, blob);
-      }
+  const convertPdfToImages = async () => {
+    if (!file) return;
+    const arrayBuffer = await file.arrayBuffer();
+    const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+    const pdf = await loadingTask.promise;
+    const totalPages = pdf.numPages;
+
+    if (totalPages === 1) {
+        const blob = await renderPageToBlob(pdf, 1, 1);
+        if (blob) {
+            setDownloadUrl(URL.createObjectURL(blob));
+        } else {
+            throw new Error("Failed to render page.");
+        }
+    } else {
+        const zip = new JSZip();
+        for (let i = 1; i <= totalPages; i++) {
+            const blob = await renderPageToBlob(pdf, i, totalPages);
+            if (blob) {
+                const fileName = `page-${String(i).padStart(2, '0')}.jpg`;
+                zip.file(fileName, blob);
+            }
+        }
+        setProgressTxt('Compressing Zip...');
+        const zipContent = await zip.generateAsync({type:"blob"});
+        saveAs(zipContent, `${file.name.split('.')[0]}-images.zip`);
+        setIsZipDownloaded(true);
     }
-
-    setProgressTxt('Zipping files...');
-    const zipContent = await zip.generateAsync({type:"blob"});
-    saveAs(zipContent, `${file.name.split('.')[0]}-images.zip`);
-    setIsZipDownloaded(true);
   };
 
   const handleConvert = async () => {
@@ -152,16 +166,12 @@ export default function PixelPressConverter() {
     setProgressTxt('Initializing...');
 
     try {
-      const inputType = file.type;
-      if (inputType === 'application/pdf') {
-        if (targetFormat === 'jpg_zip') await convertPdfToJpgZip();
+      if (file.type === 'application/pdf') {
+        if (targetFormat === 'jpg') await convertPdfToImages();
       }
-      else if (inputType.startsWith('image/')) {
-         if (targetFormat === 'pdf') {
-             await convertImageToPdf();
-         } else if (['jpeg', 'png', 'webp'].includes(targetFormat)) {
-             await convertImageToImage(targetFormat);
-         }
+      else if (file.type.startsWith('image/')) {
+         if (targetFormat === 'pdf') await convertImageToPdf();
+         else if (['jpeg', 'png', 'webp'].includes(targetFormat)) await convertImageToImage(targetFormat);
       } 
     } catch (err: any) {
       toast({
@@ -177,7 +187,7 @@ export default function PixelPressConverter() {
   const getAvailableFormats = () => {
     if (!file) return [];
     if (file.type === 'application/pdf') {
-        return [{ val: 'jpg_zip', label: 'JPG Images (ZIP Archive)' }];
+        return [{ val: 'jpg', label: 'JPG Image(s)' }];
     }
     if (file.type.startsWith('image/')) {
         return [
@@ -214,8 +224,8 @@ export default function PixelPressConverter() {
               </span>
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-              Convert PDF to JPGs, JPG to PDF, or switch between WebP/PNG formats.
-              Everything happens entirely in your browser.
+              Smart conversion. Single page PDFs download as images, 
+              multi-page documents automatically create a ZIP.
             </p>
           </motion.div>
 
@@ -334,7 +344,7 @@ export default function PixelPressConverter() {
                     <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                       {downloadUrl && (
                         <Button asChild size="lg" className="rounded-full px-10 h-14 text-lg font-bold shadow-xl shadow-primary/20 w-full sm:w-auto">
-                          <a href={downloadUrl} download={`${file.name.split('.')[0]}-converted.${targetFormat === 'pdf' ? 'pdf' : targetFormat}`}>
+                          <a href={downloadUrl} download={`${file.name.split('.')[0]}-converted.${targetFormat === 'pdf' ? 'pdf' : 'jpg'}`}>
                             Download File
                           </a>
                         </Button>
