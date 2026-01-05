@@ -205,7 +205,7 @@ export default function PixelPressConverter() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50/50 via-white to-indigo-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
       <Helmet>
-        <title>Image & PDF Converter – Free Online Tool | PixelPress</title>
+        <title>Format Converter – Free Online Tool | PixelPress</title>
         <meta name="description" content="Convert PDF to JPG, JPG to PDF, or switch between WebP/PNG/JPEG formats online. Fast, secure, and 100% private." />
       </Helmet>
       <Header />
@@ -218,7 +218,7 @@ export default function PixelPressConverter() {
             className="space-y-4"
           >
             <h1 className="text-5xl md:text-7xl font-display font-extrabold tracking-tight text-slate-900 dark:text-white leading-[1.1]">
-              File <br className="hidden md:block"/>
+              Format <br className="hidden md:block"/>
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-violet-600">
                 Converter
               </span>
