@@ -37,25 +37,47 @@ export const Header = memo(function Header() {
         <nav className="hidden md:flex items-center gap-4 glass-panel px-6 py-2 rounded-full text-sm font-medium text-muted-foreground">
           <DropdownMenu>
             <DropdownMenuTrigger className="flex items-center gap-1 hover:text-foreground transition-colors outline-none">
+              Compress Image <ChevronDown className="w-4 h-4" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="rounded-xl border-border bg-white/80 backdrop-blur-md dark:bg-slate-900/80">
+              <DropdownMenuItem asChild>
+                <Link href="/compress-png" className="cursor-pointer">Compress PNG</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/compress-jpeg" className="cursor-pointer">Compress JPEG</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/compress-webp" className="cursor-pointer">Compress WebP</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/" className="cursor-pointer font-semibold">All Formats</Link>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger className="flex items-center gap-1 hover:text-foreground transition-colors outline-none">
               Format Converter <ChevronDown className="w-4 h-4" />
             </DropdownMenuTrigger>
             <DropdownMenuContent className="rounded-xl border-border bg-white/80 backdrop-blur-md dark:bg-slate-900/80">
               <DropdownMenuItem asChild>
-                <Link href="/converter?type=pdf-to-jpg" className="cursor-pointer">PDF to JPG</Link>
+                <Link href="/converter?type=png-to-jpg" className="cursor-pointer">PNG → JPG</Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href="/converter?type=jpg-to-pdf" className="cursor-pointer">JPG to PDF</Link>
+                <Link href="/converter?type=jpg-to-png" className="cursor-pointer">JPG → PNG</Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href="/converter?type=png-to-jpg" className="cursor-pointer">PNG to JPG</Link>
+                <Link href="/converter?type=pdf-to-jpg" className="cursor-pointer">PDF → JPG</Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href="/converter?type=webp-to-jpg" className="cursor-pointer">WebP to JPG</Link>
+                <Link href="/converter?type=jpg-to-pdf" className="cursor-pointer">JPG → PDF</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/converter" className="cursor-pointer font-semibold">All Converters</Link>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
           
-          <Link href="/converter" className="hover:text-foreground transition-colors">Format Converter</Link>
           <a href="#faq" className="hover:text-foreground transition-colors">FAQ</a>
           <a href="mailto:pixelpresshelp4u@gmail.com" className="flex items-center gap-2 hover:text-foreground transition-colors">
             <Mail className="w-4 h-4" />
@@ -82,17 +104,22 @@ export const Header = memo(function Header() {
               </SheetHeader>
               <div className="flex flex-col gap-6 mt-8">
                 <div className="flex flex-col gap-4">
-                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Compress Images</h4>
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Compress Image</h4>
                   <Link href="/compress-png" onClick={() => setIsOpen(false)} className="text-lg font-medium hover:text-primary transition-colors">Compress PNG</Link>
                   <Link href="/compress-jpeg" onClick={() => setIsOpen(false)} className="text-lg font-medium hover:text-primary transition-colors">Compress JPEG</Link>
                   <Link href="/compress-webp" onClick={() => setIsOpen(false)} className="text-lg font-medium hover:text-primary transition-colors">Compress WebP</Link>
-                  
-                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mt-4">Format Converter</h4>
-                  <Link href="/converter?type=pdf-to-jpg" onClick={() => setIsOpen(false)} className="text-lg font-medium hover:text-primary transition-colors">PDF to JPG</Link>
-                  <Link href="/converter?type=jpg-to-pdf" onClick={() => setIsOpen(false)} className="text-lg font-medium hover:text-primary transition-colors">JPG to PDF</Link>
+                  <Link href="/" onClick={() => setIsOpen(false)} className="text-lg font-medium hover:text-primary transition-colors">All Formats</Link>
+                </div>
+                <div className="flex flex-col gap-4">
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Format Converter</h4>
+                  <Link href="/converter?type=png-to-jpg" onClick={() => setIsOpen(false)} className="text-lg font-medium hover:text-primary transition-colors">PNG → JPG</Link>
+                  <Link href="/converter?type=jpg-to-png" onClick={() => setIsOpen(false)} className="text-lg font-medium hover:text-primary transition-colors">JPG → PNG</Link>
+                  <Link href="/converter?type=pdf-to-jpg" onClick={() => setIsOpen(false)} className="text-lg font-medium hover:text-primary transition-colors">PDF → JPG</Link>
+                  <Link href="/converter?type=jpg-to-pdf" onClick={() => setIsOpen(false)} className="text-lg font-medium hover:text-primary transition-colors">JPG → PDF</Link>
                   <Link href="/converter" onClick={() => setIsOpen(false)} className="text-lg font-medium hover:text-primary transition-colors">All Converters</Link>
-                  
-                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mt-4">Tools</h4>
+                </div>
+                <div className="flex flex-col gap-4">
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Tools</h4>
                   <Link href="/resize-image" onClick={() => setIsOpen(false)} className="text-lg font-medium hover:text-primary transition-colors">Resize Image</Link>
                 </div>
                 <div className="flex flex-col gap-4">
