@@ -75,7 +75,12 @@ export default function CompressJPEG() {
             
             {!originalFile && (
               <div className="mt-8">
-                <UploadZone onFileSelect={handleFileSelect} />
+                <UploadZone 
+                  onFileSelect={handleFileSelect} 
+                  accept={{ 'image/jpeg': ['.jpg', '.jpeg'] }}
+                  allowedFormats="JPEG"
+                  errorMessage="Please upload a JPEG image"
+                />
               </div>
             )}
 

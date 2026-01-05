@@ -75,7 +75,12 @@ export default function CompressPNG() {
             
             {!originalFile && (
               <div className="mt-8">
-                <UploadZone onFileSelect={handleFileSelect} />
+                <UploadZone 
+                  onFileSelect={handleFileSelect} 
+                  accept={{ 'image/png': ['.png'] }}
+                  allowedFormats="PNG"
+                  errorMessage="Please upload a PNG image"
+                />
               </div>
             )}
 

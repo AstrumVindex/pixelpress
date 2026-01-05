@@ -75,7 +75,12 @@ export default function CompressWebP() {
             
             {!originalFile && (
               <div className="mt-8">
-                <UploadZone onFileSelect={handleFileSelect} />
+                <UploadZone 
+                  onFileSelect={handleFileSelect} 
+                  accept={{ 'image/webp': ['.webp'] }}
+                  allowedFormats="WebP"
+                  errorMessage="Please upload a WebP image"
+                />
               </div>
             )}
 

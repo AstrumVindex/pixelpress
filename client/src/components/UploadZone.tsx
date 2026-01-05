@@ -1,25 +1,45 @@
 import { useCallback, memo } from "react";
-import { useDropzone } from "react-dropzone";
+import { useDropzone, Accept } from "react-dropzone";
 import { motion } from "framer-motion";
 import { UploadCloud, Image as ImageIcon, FileUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 
 interface UploadZoneProps {
   onFileSelect: (file: File) => void;
+  accept?: Accept;
+  allowedFormats?: string;
+  errorMessage?: string;
 }
 
-export const UploadZone = memo(function UploadZone({ onFileSelect }: UploadZoneProps) {
-  const onDrop = useCallback((acceptedFiles: File[]) => {
+export const UploadZone = memo(function UploadZone({ 
+  onFileSelect, 
+  accept = {
+    'image/*': ['.png', '.jpg', '.jpeg', '.webp']
+  },
+  allowedFormats = "JPG, PNG, WEBP",
+  errorMessage = "Please upload a valid image file"
+}: UploadZoneProps) {
+  const { toast } = useToast();
+
+  const onDrop = useCallback((acceptedFiles: File[], fileRejections: any[]) => {
+    if (fileRejections.length > 0) {
+      toast({
+        variant: "destructive",
+        title: "Invalid file type",
+        description: errorMessage
+      });
+      return;
+    }
+
     if (acceptedFiles.length > 0) {
       onFileSelect(acceptedFiles[0]);
     }
-  }, [onFileSelect]);
+  }, [onFileSelect, toast, errorMessage]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    accept: {
-      'image/*': ['.png', '.jpg', '.jpeg', '.webp']
-    },
+    accept,
     maxFiles: 1,
     multiple: false
   });
@@ -69,7 +89,7 @@ export const UploadZone = memo(function UploadZone({ onFileSelect }: UploadZoneP
                 Drag and drop your image here, or click to browse.
                 <br />
                 <span className="text-xs uppercase tracking-wider font-medium opacity-60 mt-2 block">
-                  Supports JPG, PNG, WEBP
+                  Supports {allowedFormats}
                 </span>
               </p>
             </div>
