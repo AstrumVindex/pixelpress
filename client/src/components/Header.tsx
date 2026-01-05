@@ -77,6 +77,8 @@ export const Header = memo(function Header() {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+
+          <Link href="/resize-image" className="hover:text-foreground transition-colors">Resize</Link>
           
           <a href="#faq" className="hover:text-foreground transition-colors">FAQ</a>
           <a href="mailto:pixelpresshelp4u@gmail.com" className="flex items-center gap-2 hover:text-foreground transition-colors">
