@@ -18,7 +18,7 @@ const AllConverters = lazy(() => import("@/pages/AllConverters"));
 const PngToJpg = lazy(() => import("@/pages/converters/PngToJpg"));
 const JpgToPng = lazy(() => import("@/pages/converters/JpgToPng"));
 const PdfToJpg = lazy(() => import("@/pages/converters/PdfToJpg"));
-const JpgToPdf = lazy(() => import("@/pages/converters/JpgToPdf"));
+const JpgToPdfPage = lazy(() => import("@/pages/JpgToPdfPage"));
 const PngToWebp = lazy(() => import("@/pages/converters/PngToWebp"));
 const WebpToPng = lazy(() => import("@/pages/converters/WebpToPng"));
 const PrivacyPolicy = lazy(() => import("@/pages/PrivacyPolicy"));
@@ -43,7 +43,7 @@ function Router() {
         <Route path="/png-to-jpg" component={PngToJpg} />
         <Route path="/jpg-to-png" component={JpgToPng} />
         <Route path="/pdf-to-jpg" component={PdfToJpg} />
-        <Route path="/jpg-to-pdf" component={JpgToPdf} />
+        <Route path="/jpg-to-pdf" component={JpgToPdfPage} />
         <Route path="/png-to-webp" component={PngToWebp} />
         <Route path="/webp-to-png" component={WebpToPng} />
         <Route path="/privacy" component={PrivacyPolicy} />
