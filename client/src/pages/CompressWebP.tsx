@@ -9,6 +9,7 @@ import { useImageCompressor } from "@/hooks/use-image-compressor";
 import { motion, AnimatePresence } from "framer-motion";
 import { Zap, Cpu, Sliders, Monitor } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useLocation } from "wouter";
 import {
   Accordion,
   AccordionContent,
@@ -17,7 +18,7 @@ import {
 } from "@/components/ui/accordion";
 
 export default function CompressWebP() {
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
   const {
     originalFile,
     compressedFile,
