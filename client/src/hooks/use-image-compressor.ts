@@ -410,14 +410,62 @@ async function analyzeImage(file: File): Promise<{ isText: boolean; hasTranspare
   });
 }
 
-export function useImageCompressor() {
+// ============================================
+// RESIZE ONLY LOGIC (CANVAS)
+// ============================================
+
+/**
+ * Resizes an image file using the Canvas API to maintain maximum quality.
+ * Changes dimensions ONLY.
+ */
+const resizeImageOnly = async (
+  file: File,
+  targetWidth: number,
+  targetHeight: number
+): Promise<File> => {
+  const img = new Image();
+  const url = URL.createObjectURL(file);
+
+  await new Promise<void>((resolve, reject) => {
+    img.onload = () => resolve();
+    img.onerror = () => reject(new Error("Failed to load image for resizing"));
+    img.src = url;
+  });
+
+  const canvas = document.createElement("canvas");
+  canvas.width = targetWidth;
+  canvas.height = targetHeight;
+
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Canvas not supported");
+
+  // Use high-quality smoothing
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
+
+  ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
+
+  const blob = await new Promise<Blob>((resolve) => {
+    canvas.toBlob(
+      (b) => resolve(b as Blob),
+      file.type, // KEEP ORIGINAL FORMAT
+      1.0        // KEEP ORIGINAL QUALITY
+    );
+  });
+
+  URL.revokeObjectURL(url);
+
+  return new File([blob], file.name, { type: file.type });
+};
+
+export function useImageCompressor(isResizeOnly = false) {
   const [originalFile, setOriginalFile] = useState<File | null>(null);
   const [compressedFile, setCompressedFile] = useState<File | null>(null);
   const [isCompressing, setIsCompressing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [settings, setSettings] = useState<CompressionSettings>({
     ...PRESETS[0].settings,
-    enableCompression: true
+    enableCompression: !isResizeOnly
   });
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [originalPreviewUrl, setOriginalPreviewUrl] = useState<string | null>(null);
@@ -459,6 +507,41 @@ export function useImageCompressor() {
     try {
       setIsCompressing(true);
       setProgress(10);
+
+      // Handle Resize-Only Mode
+      if (isResizeOnly) {
+        const targetWidth = settings.width || originalFile.size; // fallback logic if width not set
+        // Need to get actual dimensions if width/height not set
+        let finalWidth = settings.width;
+        let finalHeight = settings.height;
+
+        if (!finalWidth || !finalHeight) {
+          const img = new Image();
+          const url = URL.createObjectURL(originalFile);
+          await new Promise<void>((res) => {
+            img.onload = () => {
+              if (!finalWidth && !finalHeight) {
+                finalWidth = img.width;
+                finalHeight = img.height;
+              } else if (!finalWidth) {
+                finalWidth = Math.round((img.width * (finalHeight || img.height)) / img.height);
+              } else if (!finalHeight) {
+                finalHeight = Math.round((img.height * (finalWidth || img.width)) / img.width);
+              }
+              res();
+            };
+            img.src = url;
+          });
+          URL.revokeObjectURL(url);
+        }
+
+        const resized = await resizeImageOnly(originalFile, finalWidth!, finalHeight!);
+        setCompressedFile(resized);
+        if (previewUrl) URL.revokeObjectURL(previewUrl);
+        setPreviewUrl(URL.createObjectURL(resized));
+        setProgress(100);
+        return;
+      }
 
       // Analyze image for intelligent compression
       const { isText, hasTransparency } = await analyzeImage(originalFile);

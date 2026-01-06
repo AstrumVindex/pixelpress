@@ -8,8 +8,9 @@ import { ComparisonView } from "@/components/ComparisonView";
 import { CropDialog } from "@/components/CropDialog";
 import { useImageCompressor } from "@/hooks/use-image-compressor";
 import { motion, AnimatePresence } from "framer-motion";
-import { Zap, Cpu, Sliders, Monitor } from "lucide-react";
+import { Zap, Cpu, Sliders, Monitor, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useLocation } from "wouter";
 import {
   Accordion,
   AccordionContent,
@@ -18,6 +19,7 @@ import {
 } from "@/components/ui/accordion";
 
 export default function ResizeImage() {
+  const [, setLocation] = useLocation();
   const {
     originalFile,
     compressedFile,
@@ -29,10 +31,26 @@ export default function ResizeImage() {
     originalPreviewUrl,
     handleFileSelect,
     reset
-  } = useImageCompressor();
+  } = useImageCompressor(true); // Enable resize-only mode
 
   const [cropDialogOpen, setCropDialogOpen] = useState(false);
   const [originalDimensions, setOriginalDimensions] = useState<{ width: number; height: number }>();
+
+  const handleCompressRedirect = () => {
+    if (!compressedFile) return;
+
+    const type = compressedFile.type;
+    // We pass the resized file via session storage or similar if needed, 
+    // but here we'll just navigate. In a real app we might use a global state or search params.
+    // For now, follow the requirement to redirect.
+    if (type === "image/png") {
+      setLocation("/compress-png");
+    } else if (type === "image/jpeg") {
+      setLocation("/compress-jpeg");
+    } else if (type === "image/webp") {
+      setLocation("/compress-webp");
+    }
+  };
 
   useEffect(() => {
     if (originalFile) {
@@ -177,6 +195,26 @@ export default function ResizeImage() {
                         onReset={reset}
                         showDownload={true}
                       />
+
+                      {compressedFile && (
+                        <motion.div 
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="mt-6 p-6 bg-primary/5 border border-primary/20 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4"
+                        >
+                          <div className="text-center sm:text-left">
+                            <h4 className="font-bold text-lg">Resize Complete!</h4>
+                            <p className="text-sm text-muted-foreground">Want to reduce the file size too?</p>
+                          </div>
+                          <Button 
+                            onClick={handleCompressRedirect}
+                            className="w-full sm:w-auto rounded-xl gap-2 h-12 px-6"
+                          >
+                            Compress This Image
+                            <ArrowRight className="w-4 h-4" />
+                          </Button>
+                        </motion.div>
+                      )}
                     </div>
                   </div>
                 </div>

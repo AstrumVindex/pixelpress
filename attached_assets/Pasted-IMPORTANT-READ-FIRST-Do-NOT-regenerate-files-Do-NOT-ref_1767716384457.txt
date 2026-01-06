@@ -1,0 +1,181 @@
+IMPORTANT (READ FIRST):
+❗ Do NOT regenerate files
+❗ Do NOT refactor UI or routing
+❗ Do NOT touch compression pages
+❗ Apply ONLY the logic changes below
+❗ Follow the code exactly — do not rewrite it
+
+🔴 PROBLEM EXPLANATION (WHY THIS CHANGE IS REQUIRED)
+
+The Resize Image page is currently using the same logic as the Compress Image page.
+This causes major bugs:
+
+Resizing unexpectedly reduces file size
+
+Resizing + cropping resets image quality
+
+Image size jumps back to MB
+
+Users cannot resize without compression
+
+This is incorrect product behavior.
+
+✅ REQUIRED PRODUCT RULE (VERY IMPORTANT)
+
+Resize = change dimensions ONLY
+Compression = change file size ONLY
+
+They must be separate workflows.
+
+✅ REQUIRED FINAL BEHAVIOR
+Resize Page
+
+Resize image dimensions only
+
+Preserve:
+
+File format
+
+Quality
+
+Compression level
+
+NO compression library usage
+
+NO quality slider
+
+NO maxSizeMB
+
+NO format conversion
+
+After Resize
+
+Show button: “Compress This Image”
+
+Redirect user to:
+
+/compress-png
+
+/compress-jpeg
+
+/compress-webp
+
+Pass resized image as input
+
+✅ EXACT FIX CODE — RESIZE LOGIC
+📁 File: use-image-compressor.ts
+1️⃣ ADD STATE TO CONTROL MODE
+const isResizeOnly = true;
+
+2️⃣ REMOVE COMPRESSION FROM RESIZE PAGE
+
+❌ DO NOT CALL:
+
+imageCompression(...)
+
+
+❌ REMOVE / DISABLE:
+
+maxSizeMB
+initialQuality
+format
+
+3️⃣ IMPLEMENT RESIZE-ONLY LOGIC (USE CANVAS)
+const resizeImageOnly = async (
+  file: File,
+  targetWidth: number,
+  targetHeight: number
+): Promise<File> => {
+  const img = new Image();
+  const url = URL.createObjectURL(file);
+
+  await new Promise<void>((resolve) => {
+    img.onload = () => resolve();
+    img.src = url;
+  });
+
+  const canvas = document.createElement("canvas");
+  canvas.width = targetWidth;
+  canvas.height = targetHeight;
+
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Canvas not supported");
+
+  ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
+
+  const blob = await new Promise<Blob>((resolve) => {
+    canvas.toBlob(
+      (b) => resolve(b as Blob),
+      file.type, // KEEP ORIGINAL FORMAT
+      1.0        // KEEP ORIGINAL QUALITY
+    );
+  });
+
+  URL.revokeObjectURL(url);
+
+  return new File([blob], file.name, { type: file.type });
+};
+
+4️⃣ UPDATE PIPELINE TO USE RESIZE ONLY
+useEffect(() => {
+  if (!workingFile) return;
+
+  if (isResizeOnly) {
+    resizeImageOnly(
+      workingFile,
+      settings.targetWidth,
+      settings.targetHeight
+    ).then((resizedFile) => {
+      setWorkingFile(resizedFile);
+      setCompressedFile(resizedFile); // output for download
+    });
+  }
+}, [workingFile, settings]);
+
+
+⚠️ DO NOT run compression here.
+
+✅ ADD “COMPRESS THIS IMAGE” BUTTON LOGIC
+📁 ResizeImage.tsx
+const handleCompressRedirect = () => {
+  if (!compressedFile) return;
+
+  const type = compressedFile.type;
+
+  if (type === "image/png") {
+    navigate("/compress-png", { state: { file: compressedFile } });
+  } else if (type === "image/jpeg") {
+    navigate("/compress-jpeg", { state: { file: compressedFile } });
+  } else if (type === "image/webp") {
+    navigate("/compress-webp", { state: { file: compressedFile } });
+  }
+};
+
+
+Show button only after resize is complete.
+
+🚫 STRICT NON-GOALS (DO NOT DO THESE)
+
+❌ Do NOT auto-compress on resize
+
+❌ Do NOT change compression pages
+
+❌ Do NOT merge resize + compress
+
+❌ Do NOT refactor hooks
+
+❌ Do NOT regenerate files
+
+✅ EXPECTED RESULT AFTER FIX
+
+✔ Resize only changes dimensions
+✔ File size stays logical
+✔ Crop works correctly
+✔ PNG/JPEG/WebP preserved
+✔ User explicitly chooses compression
+✔ No more size jumping bugs
+✔ Replit credits saved
+
+🧠 FINAL PRODUCT RULE (REMEMBER THIS)
+
+Resize first. Compress later. Never together by default.
