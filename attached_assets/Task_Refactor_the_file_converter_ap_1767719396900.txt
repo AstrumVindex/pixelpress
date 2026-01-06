@@ -1,0 +1,210 @@
+Task: Refactor the file converter application to support strict file validation and bulk uploads using a reusable component architecture.
+
+Tech Stack: React, Tailwind CSS, React Router DOM, Lucide React.
+
+Requirements:
+
+Install Dependencies: Ensure react-router-dom and lucide-react are installed.
+
+Create a Smart Reusable Component: Create src/components/FileConverter.jsx. This component must:
+
+Accept inputFormat (e.g., 'png') and outputFormat (e.g., 'jpg') as props.
+
+Strictly validate uploaded files. If inputFormat is 'png', reject all other file types immediately.
+
+Support Bulk Upload (multiple files).
+
+Use an array state to store valid files.
+
+Create the "All Tools" Page: Create src/pages/AllConverters.jsx that lists links to all 5 conversion tools (PNG→JPG, JPG→PNG, PDF→JPG, JPG→PDF).
+
+Setup Routing: Update src/App.jsx to use react-router-dom. Define routes for the specific tools, reusing the FileConverter component for each route with different props.
+
+
+
+Code to Implement:
+
+Step 1: Create src/components/FileConverter.jsx
+
+JavaScript
+
+import React, { useState } from 'react';
+import { Upload, X, FileIcon, AlertCircle } from 'lucide-react';
+
+const MIME_TYPES = {
+  png: 'image/png',
+  jpg: 'image/jpeg',
+  jpeg: 'image/jpeg',
+  webp: 'image/webp',
+  pdf: 'application/pdf',
+};
+
+const FileConverter = ({ inputFormat, outputFormat }) => {
+  const [files, setFiles] = useState([]);
+  const [error, setError] = useState('');
+  const [isDragging, setIsDragging] = useState(false);
+
+  const validateAndAddFiles = (newFiles) => {
+    setError('');
+    const validFiles = [];
+    const invalidFiles = [];
+
+    Array.from(newFiles).forEach(file => {
+      const fileExtension = file.name.split('.').pop().toLowerCase();
+      const expectedMime = MIME_TYPES[inputFormat.toLowerCase()];
+
+      if (
+        fileExtension === inputFormat.toLowerCase() || 
+        (expectedMime && file.type === expectedMime)
+      ) {
+        validFiles.push(file);
+      } else {
+        invalidFiles.push(file.name);
+      }
+    });
+
+    if (invalidFiles.length > 0) {
+      setError(`Error: Only .${inputFormat.toUpperCase()} files are allowed here. Skipped: ${invalidFiles.join(', ')}`);
+    }
+
+    if (validFiles.length > 0) {
+      setFiles(prev => [...prev, ...validFiles]);
+    }
+  };
+
+  const handleDragOver = (e) => { e.preventDefault(); setIsDragging(true); };
+  const handleDragLeave = (e) => { e.preventDefault(); setIsDragging(false); };
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+    if (e.dataTransfer.files?.length > 0) validateAndAddFiles(e.dataTransfer.files);
+  };
+  const handleFileSelect = (e) => {
+    if (e.target.files?.length > 0) validateAndAddFiles(e.target.files);
+  };
+  const removeFile = (index) => {
+    setFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  return (
+    <div className="max-w-2xl mx-auto p-6 bg-white rounded-xl shadow-sm mt-10">
+      <div className="text-center mb-8">
+        <h1 className="text-4xl font-bold text-slate-900 mb-2">
+          {inputFormat.toUpperCase()} to {outputFormat.toUpperCase()}
+        </h1>
+        <p className="text-slate-500">
+          Strictly accepts <span className="font-bold text-indigo-600">.{inputFormat.toUpperCase()}</span> files only.
+        </p>
+      </div>
+
+      <div 
+        className={`border-2 border-dashed rounded-3xl p-10 text-center transition-colors ${isDragging ? 'border-indigo-500 bg-indigo-50' : 'border-slate-200'} ${error ? 'border-red-200 bg-red-50' : ''}`}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      >
+        <div className="flex flex-col items-center justify-center space-y-4">
+          <div className="p-4 bg-white rounded-2xl shadow-sm"><Upload className="w-8 h-8 text-indigo-600" /></div>
+          <div>
+            <h3 className="text-xl font-bold text-slate-900">Upload {inputFormat.toUpperCase()} Files</h3>
+            <p className="text-slate-500 mt-1">Drag and drop or click to browse</p>
+          </div>
+          <input 
+            type="file" 
+            id="file-upload" 
+            className="hidden" 
+            onChange={handleFileSelect}
+            accept={`.${inputFormat}, ${MIME_TYPES[inputFormat] || ''}`}
+            multiple 
+          />
+          <label htmlFor="file-upload" className="px-8 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-full cursor-pointer">
+            Select Files
+          </label>
+        </div>
+      </div>
+
+      {error && <div className="mt-4 p-3 bg-red-50 text-red-700 rounded-lg flex items-center gap-2 text-sm"><AlertCircle size={16} />{error}</div>}
+
+      {files.length > 0 && (
+        <div className="mt-8">
+          <h4 className="font-semibold text-slate-700 mb-3">Files ({files.length})</h4>
+          <div className="space-y-2">
+            {files.map((file, index) => (
+              <div key={index} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100">
+                <div className="flex items-center gap-3">
+                  <FileIcon className="w-5 h-5 text-indigo-400" />
+                  <span className="font-medium text-slate-700 text-sm">{file.name}</span>
+                </div>
+                <button onClick={() => removeFile(index)} className="p-1 hover:bg-slate-200 rounded-full text-slate-400"><X size={16} /></button>
+              </div>
+            ))}
+          </div>
+          <button className="w-full mt-4 py-3 bg-slate-900 text-white rounded-lg font-medium hover:bg-slate-800">Convert All</button>
+        </div>
+      )}
+    </div>
+  );
+};
+export default FileConverter;
+
+
+Step 2: Create src/pages/AllConverters.jsx
+
+JavaScript
+
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { FileImage, FileText, ArrowRight } from 'lucide-react';
+
+const tools = [
+  { title: 'PNG to JPG', link: '/png-to-jpg', icon: <FileImage className="text-blue-500"/> },
+  { title: 'JPG to PNG', link: '/jpg-to-png', icon: <FileImage className="text-green-500"/> },
+  { title: 'PDF to JPG', link: '/pdf-to-jpg', icon: <FileText className="text-red-500"/> },
+  { title: 'JPG to PDF', link: '/jpg-to-pdf', icon: <FileText className="text-purple-500"/> }
+];
+
+const AllConverters = () => (
+  <div className="max-w-4xl mx-auto px-6 py-12">
+    <h1 className="text-3xl font-bold text-center mb-8">All Converter Tools</h1>
+    <div className="grid md:grid-cols-2 gap-4">
+      {tools.map(tool => (
+        <Link key={tool.link} to={tool.link} className="p-6 bg-white border rounded-xl hover:shadow-md flex items-center justify-between group">
+          <div className="flex items-center gap-4">{tool.icon} <span className="font-semibold">{tool.title}</span></div>
+          <ArrowRight className="text-slate-300 group-hover:text-indigo-600" />
+        </Link>
+      ))}
+    </div>
+  </div>
+);
+export default AllConverters;
+
+
+Step 3: Update src/App.jsx
+
+JavaScript
+
+import React from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import FileConverter from './components/FileConverter';
+import AllConverters from './pages/AllConverters';
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <div className="min-h-screen bg-slate-50 font-sans">
+        <nav className="p-4 bg-white shadow-sm mb-4 flex justify-between">
+           <a href="/" className="font-bold text-xl">PixelPress</a>
+           <a href="/all-converters" className="text-indigo-600 font-medium">All Tools</a>
+        </nav>
+        <Routes>
+          <Route path="/" element={<AllConverters />} />
+          <Route path="/all-converters" element={<AllConverters />} />
+          <Route path="/png-to-jpg" element={<FileConverter inputFormat="png" outputFormat="jpg" />} />
+          <Route path="/jpg-to-png" element={<FileConverter inputFormat="jpg" outputFormat="png" />} />
+          <Route path="/pdf-to-jpg" element={<FileConverter inputFormat="pdf" outputFormat="jpg" />} />
+          <Route path="/jpg-to-pdf" element={<FileConverter inputFormat="jpg" outputFormat="pdf" />} />
+        </Routes>
+      </div>
+    </BrowserRouter>
+  );
+}
