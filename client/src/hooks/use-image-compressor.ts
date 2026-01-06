@@ -536,7 +536,8 @@ export function useImageCompressor(isResizeOnly = false) {
         }
 
         const resized = await resizeImageOnly(originalFile, finalWidth!, finalHeight!);
-        setCompressedFile(resized);
+        const resizedFile = new File([resized], originalFile.name, { type: resized.type });
+        setCompressedFile(resizedFile);
         if (previewUrl) URL.revokeObjectURL(previewUrl);
         setPreviewUrl(URL.createObjectURL(resized));
         setProgress(100);
