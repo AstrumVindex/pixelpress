@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { Upload, X, Check, FileText, Download, Zap, ImageIcon, Maximize2, Columns, Layers } from 'lucide-react';
+import { Upload, X, Check, FileText, Download, Zap, ImageIcon, Maximize2, Minimize2, AlignCenter, Layers } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
@@ -9,6 +9,7 @@ interface JpgFile {
   file: File;
   previewUrl: string;
   id: string;
+  name: string;
 }
 
 interface PdfOptions {
@@ -56,7 +57,8 @@ export function JpgToPdfTool() {
     const newJpgFiles: JpgFile[] = validFiles.map(file => ({
       file,
       previewUrl: URL.createObjectURL(file),
-      id: `${file.name}-${Date.now()}-${Math.random()}`
+      id: `${file.name}-${Date.now()}-${Math.random()}`,
+      name: file.name
     }));
 
     setFiles(prev => [...prev, ...newJpgFiles]);
@@ -165,6 +167,14 @@ export function JpgToPdfTool() {
     setResultFiles([]);
   };
 
+  const getPaperStyles = () => {
+    const aspectRatio = options.orientation === 'portrait' ? 'aspect-[210/297]' : 'aspect-[297/210]';
+    let padding = 'p-0';
+    if (options.margin === 'small') padding = 'p-4';
+    if (options.margin === 'big') padding = 'p-8';
+    return { aspectRatio, padding };
+  };
+
   if (isDone) {
     return (
       <motion.div 
@@ -213,80 +223,101 @@ export function JpgToPdfTool() {
     );
   }
 
+  const { aspectRatio, padding } = getPaperStyles();
+
   return (
     <div className="flex flex-col lg:grid lg:grid-cols-12 gap-8 items-start">
       <div className="lg:col-span-8 w-full space-y-6">
-        {files.length === 0 ? (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className={`
-              border-2 border-dashed rounded-[2.5rem] p-12 text-center h-[28rem] flex flex-col items-center justify-center transition-all
-              bg-white/40 dark:bg-slate-900/40 backdrop-blur-sm
-              ${isDragging ? 'border-primary bg-primary/5 scale-[1.01] shadow-xl' : 'border-border shadow-sm'}
-            `}
-            onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-            onDragLeave={() => setIsDragging(false)}
-            onDrop={(e) => { e.preventDefault(); setIsDragging(false); handleFiles(e.dataTransfer.files); }}
-            onClick={() => fileInputRef.current?.click()}
-          >
-            <div className="p-6 bg-white dark:bg-slate-800 rounded-3xl shadow-xl border border-border/50 mb-6 group-hover:scale-110 transition-transform">
-              <Upload className="w-12 h-12 text-primary" />
-            </div>
-            <h3 className="text-2xl font-display font-bold text-foreground mb-2">Upload JPG Images</h3>
-            <p className="text-muted-foreground mb-8">Drag and drop your images here or click to browse</p>
-            <input 
-              type="file" 
-              ref={fileInputRef}
-              className="hidden" 
-              multiple 
-              accept="image/jpeg, image/jpg" 
-              onChange={(e) => handleFiles(e.target.files)} 
-            />
-            <Button size="lg" className="rounded-full px-10 h-14 text-lg font-bold shadow-xl shadow-primary/20">
-              Select Files
-            </Button>
-          </motion.div>
-        ) : (
-          <div className="bg-white/50 dark:bg-slate-900/50 backdrop-blur-md p-6 rounded-[2.5rem] border border-border/50 min-h-[30rem] shadow-xl">
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-              <AnimatePresence>
-                {files.map(file => (
-                  <motion.div 
-                    key={file.id} 
-                    layout
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.9 }}
-                    className="relative aspect-[3/4] group rounded-2xl overflow-hidden shadow-md bg-slate-100 dark:bg-slate-800 border border-border/40"
-                  >
-                    <img src={file.previewUrl} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+        <div className={`
+          bg-white/50 dark:bg-slate-900/50 backdrop-blur-md p-8 rounded-[2.5rem] border border-border/50 min-h-[35rem] shadow-xl
+          ${isDragging ? 'border-primary bg-primary/5 ring-4 ring-primary/10' : ''}
+        `}
+        onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+        onDragLeave={() => setIsDragging(false)}
+        onDrop={(e) => { e.preventDefault(); setIsDragging(false); handleFiles(e.dataTransfer.files); }}
+        >
+          {files.length === 0 ? (
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="h-[28rem] flex flex-col items-center justify-center text-center cursor-pointer group"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <div className="p-6 bg-white dark:bg-slate-800 rounded-3xl shadow-xl border border-border/50 mb-6 group-hover:scale-110 transition-transform">
+                <Upload className="w-12 h-12 text-primary" />
+              </div>
+              <h3 className="text-2xl font-display font-bold text-foreground mb-2">Upload JPG Images</h3>
+              <p className="text-muted-foreground mb-8">Drag and drop your images here or click to browse</p>
+              <input 
+                type="file" 
+                ref={fileInputRef}
+                className="hidden" 
+                multiple 
+                accept="image/jpeg, image/jpg" 
+                onChange={(e) => handleFiles(e.target.files)} 
+              />
+              <Button size="lg" className="rounded-full px-10 h-14 text-lg font-bold shadow-xl shadow-primary/20">
+                Select Files
+              </Button>
+            </motion.div>
+          ) : (
+            <div className="space-y-6">
+              <div className="flex justify-between items-center px-2">
+                <h3 className="font-display font-bold text-slate-700 dark:text-slate-300">Live Preview ({files.length} pages)</h3>
+                <Button variant="ghost" size="sm" onClick={() => setFiles([])} className="text-red-500 hover:text-red-600 font-bold">
+                  Clear All
+                </Button>
+              </div>
+              
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+                <AnimatePresence>
+                  {files.map((file) => (
+                    <motion.div 
+                      key={file.id} 
+                      layout
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.9 }}
+                      className="relative group"
+                    >
+                      <div className={`bg-white dark:bg-slate-800 shadow-lg rounded-sm transition-all duration-300 ease-in-out relative border border-border/20 ${aspectRatio} ${padding}`}>
+                        <div className="w-full h-full bg-slate-50 dark:bg-slate-900/50 relative overflow-hidden border border-border/10">
+                          <img 
+                            src={file.previewUrl} 
+                            alt="preview" 
+                            className="w-full h-full object-contain" 
+                          />
+                        </div>
+                      </div>
+                      
                       <Button 
                         variant="destructive" 
                         size="icon" 
                         onClick={() => removeFile(file.id)}
-                        className="rounded-full h-10 w-10 shadow-lg"
+                        className="absolute -top-2 -right-2 rounded-full h-8 w-8 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-10"
                       >
-                        <X size={20} />
+                        <X size={16} />
                       </Button>
-                    </div>
-                  </motion.div>
-                ))}
-              </AnimatePresence>
-              <motion.button 
-                layout
-                onClick={() => fileInputRef.current?.click()}
-                className="aspect-[3/4] border-2 border-dashed border-border/60 rounded-2xl flex flex-col items-center justify-center cursor-pointer hover:bg-white/40 dark:hover:bg-slate-800/40 transition-colors group"
-              >
-                <div className="p-3 bg-primary/10 rounded-full text-primary group-hover:scale-110 transition-transform">
-                  <Upload className="w-6 h-6" />
-                </div>
-                <span className="text-sm font-bold text-muted-foreground mt-3">Add More</span>
-              </motion.button>
+                      <p className="mt-3 text-[10px] font-bold text-center text-muted-foreground uppercase tracking-widest truncate px-2">{file.name}</p>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+                
+                <motion.button 
+                  layout
+                  onClick={() => fileInputRef.current?.click()}
+                  className={`flex flex-col items-center justify-center border-2 border-dashed border-border/60 rounded-xl cursor-pointer hover:bg-white/40 dark:hover:bg-slate-800/40 transition-colors group ${aspectRatio}`}
+                >
+                  <div className="p-3 bg-primary/10 rounded-full text-primary group-hover:scale-110 transition-transform">
+                    <Upload className="w-6 h-6" />
+                  </div>
+                  <span className="text-xs font-bold text-muted-foreground mt-3 uppercase tracking-wider">Add Page</span>
+                  <input type="file" ref={fileInputRef} className="hidden" multiple accept="image/jpeg, image/jpg" onChange={(e) => handleFiles(e.target.files)} />
+                </motion.button>
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       <div className="lg:col-span-4 w-full sticky top-24">
@@ -307,7 +338,7 @@ export function JpgToPdfTool() {
                   onClick={() => setOptions({...options, orientation: 'portrait'})}
                   className="rounded-xl h-12 font-bold"
                 >
-                  <Maximize2 size={16} className="mr-2 rotate-90" />
+                  <div className="w-3 h-4 border-2 border-current rounded-sm mr-2 opacity-70"></div>
                   Portrait
                 </Button>
                 <Button 
@@ -315,7 +346,7 @@ export function JpgToPdfTool() {
                   onClick={() => setOptions({...options, orientation: 'landscape'})}
                   className="rounded-xl h-12 font-bold"
                 >
-                  <Maximize2 size={16} className="mr-2" />
+                  <div className="w-4 h-3 border-2 border-current rounded-sm mr-2 opacity-70"></div>
                   Landscape
                 </Button>
               </div>
@@ -344,14 +375,19 @@ export function JpgToPdfTool() {
             <div className="space-y-3">
               <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Margins</label>
               <div className="grid grid-cols-3 gap-2">
-                {(['no', 'small', 'big'] as const).map(m => (
+                {[
+                  { id: 'no', icon: <Maximize2 size={16}/>, label: 'No' },
+                  { id: 'small', icon: <Minimize2 size={16}/>, label: 'Small' },
+                  { id: 'big', icon: <AlignCenter size={16}/>, label: 'Big' },
+                ].map((m) => (
                   <Button 
-                    key={m}
-                    variant={options.margin === m ? 'default' : 'outline'}
-                    onClick={() => setOptions({...options, margin: m})}
-                    className="rounded-xl h-10 text-xs font-bold capitalize"
+                    key={m.id}
+                    variant={options.margin === m.id ? 'default' : 'outline'}
+                    onClick={() => setOptions({...options, margin: m.id as any})}
+                    className="rounded-xl h-12 flex flex-col items-center gap-1 font-bold"
                   >
-                    {m}
+                    {m.icon}
+                    <span className="text-[10px] uppercase">{m.label}</span>
                   </Button>
                 ))}
               </div>
