@@ -15,6 +15,7 @@ interface ComparisonViewProps {
   onDownload: () => void;
   onReset: () => void;
   showDownload?: boolean;
+  isResizeMode?: boolean;
 }
 
 export function ComparisonView({
@@ -25,7 +26,8 @@ export function ComparisonView({
   isCompressing,
   onDownload,
   onReset,
-  showDownload = false
+  showDownload = false,
+  isResizeMode = false
 }: ComparisonViewProps) {
   const [sliderPosition, setSliderPosition] = useState(50);
   const { toast } = useToast();
@@ -43,7 +45,9 @@ export function ComparisonView({
   const canDownload = showDownload || isSavingsPositive;
 
   const handleShare = async () => {
-    const text = `I just compressed an image and saved ${savings.toFixed(1)}% (${formatSize(originalSize - compressedSize)})! Try PixelPress - free, fast, and secure image compression 🚀`;
+    const text = isResizeMode 
+      ? `I just resized an image with PixelPress! Free, fast, and secure 🚀`
+      : `I just compressed an image and saved ${savings.toFixed(1)}% (${formatSize(originalSize - compressedSize)})! Try PixelPress - free, fast, and secure image compression 🚀`;
     
     try {
       if (navigator.share) {
@@ -99,7 +103,7 @@ export function ComparisonView({
           <div className="text-lg font-bold font-display">{formatSize(originalSize)}</div>
         </div>
         <div className="bg-white/50 p-4 rounded-2xl border border-white/20 text-center relative overflow-hidden">
-          <div className="text-xs text-muted-foreground uppercase font-bold tracking-wider mb-1">Compressed</div>
+          <div className="text-xs text-muted-foreground uppercase font-bold tracking-wider mb-1">{isResizeMode ? "Resized" : "Compressed"}</div>
           <div className="text-lg font-bold font-display text-primary">{formatSize(compressedSize)}</div>
           {isCompressing && (
             <motion.div 
@@ -110,12 +114,14 @@ export function ComparisonView({
             />
           )}
         </div>
-        <div className="bg-primary/5 p-4 rounded-2xl border border-primary/10 text-center col-span-2 md:col-span-1">
-          <div className="text-xs text-primary/80 uppercase font-bold tracking-wider mb-1">Saved</div>
-          <div className={`text-lg font-bold font-display ${isSavingsPositive ? 'text-green-600' : 'text-orange-500'}`}>
-            {isSavingsPositive ? `-${savings.toFixed(1)}%` : '+0%'}
+        {!isResizeMode && (
+          <div className="bg-primary/5 p-4 rounded-2xl border border-primary/10 text-center col-span-2 md:col-span-1">
+            <div className="text-xs text-primary/80 uppercase font-bold tracking-wider mb-1">Saved</div>
+            <div className={`text-lg font-bold font-display ${isSavingsPositive ? 'text-green-600' : 'text-orange-500'}`}>
+              {isSavingsPositive ? `-${savings.toFixed(1)}%` : '+0%'}
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Comparison Slider */}
@@ -123,11 +129,11 @@ export function ComparisonView({
         {/* Base Layer: Compressed Image */}
         <img 
           src={compressedUrl} 
-          alt="Compressed" 
+          alt={isResizeMode ? "Resized" : "Compressed"} 
           className="absolute inset-0 w-full h-full object-contain bg-white"
           data-testid="img-compressed"
         />
-        <Badge className="absolute top-4 right-4 z-10 bg-primary/90 hover:bg-primary pointer-events-none">Compressed</Badge>
+        <Badge className="absolute top-4 right-4 z-10 bg-primary/90 hover:bg-primary pointer-events-none">{isResizeMode ? "Resized" : "Compressed"}</Badge>
 
         {/* Overlay Layer: Original Image with Clip Mask */}
         <div 
@@ -204,7 +210,7 @@ export function ComparisonView({
           {isCompressing ? (
             <>
               <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-              Compressing...
+              {isResizeMode ? "Resizing..." : "Compressing..."}
             </>
           ) : (
             <>

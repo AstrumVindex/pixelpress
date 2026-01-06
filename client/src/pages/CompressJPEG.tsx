@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/accordion";
 
 export default function CompressJPEG() {
+  const [, setLocation] = useLocation();
   const {
     originalFile,
     compressedFile,
@@ -29,6 +30,15 @@ export default function CompressJPEG() {
     handleFileSelect,
     reset
   } = useImageCompressor();
+
+  useEffect(() => {
+    const state = window.history.state?.usr;
+    if (state?.file && !originalFile) {
+      handleFileSelect(state.file);
+      // Clear the state to prevent re-loading on refresh
+      window.history.replaceState({}, document.title);
+    }
+  }, [handleFileSelect, originalFile]);
 
   const handleDownload = () => {
     if (compressedFile) {

@@ -40,15 +40,16 @@ export default function ResizeImage() {
     if (!compressedFile) return;
 
     const type = compressedFile.type;
-    // We pass the resized file via session storage or similar if needed, 
-    // but here we'll just navigate. In a real app we might use a global state or search params.
-    // For now, follow the requirement to redirect.
+    
+    // Pass the resized file via router state
+    const navigationOptions = { state: { file: compressedFile } };
+
     if (type === "image/png") {
-      setLocation("/compress-png");
+      setLocation("/compress-png", navigationOptions);
     } else if (type === "image/jpeg") {
-      setLocation("/compress-jpeg");
+      setLocation("/compress-jpeg", navigationOptions);
     } else if (type === "image/webp") {
-      setLocation("/compress-webp");
+      setLocation("/compress-webp", navigationOptions);
     }
   };
 
@@ -194,6 +195,7 @@ export default function ResizeImage() {
                         onDownload={handleDownload}
                         onReset={reset}
                         showDownload={true}
+                        isResizeMode={true}
                       />
 
                       {compressedFile && (
