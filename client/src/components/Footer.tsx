@@ -18,19 +18,23 @@ export const Footer = memo(function Footer() {
           </div>
           
           <div>
-            <h4 className="font-semibold mb-4">Tools</h4>
-            <ul className="grid grid-cols-2 gap-x-8 gap-y-2 text-sm text-muted-foreground">
+            <h4 className="font-semibold mb-4">Compress</h4>
+            <ul className="space-y-2 text-sm text-muted-foreground">
               <li><Link href="/compress-png" className="hover:text-primary transition-colors">Compress PNG</Link></li>
               <li><Link href="/compress-jpeg" className="hover:text-primary transition-colors">Compress JPEG</Link></li>
-              <li><Link href="/compress-webp" className="hover:text-primary transition-colors">Convert to WebP</Link></li>
+              <li><Link href="/compress-webp" className="hover:text-primary transition-colors">Compress WebP</Link></li>
               <li><Link href="/resize-image" className="hover:text-primary transition-colors">Resize Image</Link></li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="font-semibold mb-4">Convert</h4>
+            <ul className="grid grid-cols-1 gap-y-2 text-sm text-muted-foreground">
               <li><Link href="/png-to-jpg" className="hover:text-primary transition-colors">PNG to JPG</Link></li>
               <li><Link href="/jpg-to-png" className="hover:text-primary transition-colors">JPG to PNG</Link></li>
               <li><Link href="/pdf-to-jpg" className="hover:text-primary transition-colors">PDF to JPG</Link></li>
               <li><Link href="/jpg-to-pdf" className="hover:text-primary transition-colors">JPG to PDF</Link></li>
-              <li><Link href="/png-to-webp" className="hover:text-primary transition-colors">PNG to WebP</Link></li>
-              <li><Link href="/webp-to-png" className="hover:text-primary transition-colors">WebP to PNG</Link></li>
-              <li className="col-span-2"><Link href="/all-converters" className="hover:text-primary transition-colors font-medium">All Converters</Link></li>
+              <li><Link href="/all-converters" className="hover:text-primary transition-colors font-medium">More Converters...</Link></li>
             </ul>
           </div>
 
