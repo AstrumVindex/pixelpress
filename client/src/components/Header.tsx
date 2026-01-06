@@ -61,19 +61,19 @@ export const Header = memo(function Header() {
             </DropdownMenuTrigger>
             <DropdownMenuContent className="rounded-xl border-border bg-white/80 backdrop-blur-md dark:bg-slate-900/80">
               <DropdownMenuItem asChild>
-                <Link href="/converter?type=png-to-jpg" className="cursor-pointer">PNG → JPG</Link>
+                <Link href="/png-to-jpg" className="cursor-pointer">PNG → JPG</Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href="/converter?type=jpg-to-png" className="cursor-pointer">JPG → PNG</Link>
+                <Link href="/jpg-to-png" className="cursor-pointer">JPG → PNG</Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href="/converter?type=pdf-to-jpg" className="cursor-pointer">PDF → JPG</Link>
+                <Link href="/pdf-to-jpg" className="cursor-pointer">PDF → JPG</Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href="/converter?type=jpg-to-pdf" className="cursor-pointer">JPG → PDF</Link>
+                <Link href="/jpg-to-pdf" className="cursor-pointer">JPG → PDF</Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href="/converter" className="cursor-pointer font-semibold">All Converters</Link>
+                <Link href="/all-converters" className="cursor-pointer font-semibold">All Converters</Link>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -114,11 +114,11 @@ export const Header = memo(function Header() {
                 </div>
                 <div className="flex flex-col gap-4">
                   <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Format Converter</h4>
-                  <Link href="/converter?type=png-to-jpg" onClick={() => setIsOpen(false)} className="text-lg font-medium hover:text-primary transition-colors">PNG → JPG</Link>
-                  <Link href="/converter?type=jpg-to-png" onClick={() => setIsOpen(false)} className="text-lg font-medium hover:text-primary transition-colors">JPG → PNG</Link>
-                  <Link href="/converter?type=pdf-to-jpg" onClick={() => setIsOpen(false)} className="text-lg font-medium hover:text-primary transition-colors">PDF → JPG</Link>
-                  <Link href="/converter?type=jpg-to-pdf" onClick={() => setIsOpen(false)} className="text-lg font-medium hover:text-primary transition-colors">JPG → PDF</Link>
-                  <Link href="/converter" onClick={() => setIsOpen(false)} className="text-lg font-medium hover:text-primary transition-colors">All Converters</Link>
+                  <Link href="/png-to-jpg" onClick={() => setIsOpen(false)} className="text-lg font-medium hover:text-primary transition-colors">PNG → JPG</Link>
+                  <Link href="/jpg-to-png" onClick={() => setIsOpen(false)} className="text-lg font-medium hover:text-primary transition-colors">JPG → PNG</Link>
+                  <Link href="/pdf-to-jpg" onClick={() => setIsOpen(false)} className="text-lg font-medium hover:text-primary transition-colors">PDF → JPG</Link>
+                  <Link href="/jpg-to-pdf" onClick={() => setIsOpen(false)} className="text-lg font-medium hover:text-primary transition-colors">JPG → PDF</Link>
+                  <Link href="/all-converters" onClick={() => setIsOpen(false)} className="text-lg font-medium hover:text-primary transition-colors">All Converters</Link>
                 </div>
                 <div className="flex flex-col gap-4">
                   <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Tools</h4>
