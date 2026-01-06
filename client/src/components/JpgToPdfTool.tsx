@@ -303,7 +303,7 @@ export function JpgToPdfTool() {
               <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Orientation</label>
               <div className="grid grid-cols-2 gap-3">
                 <Button 
-                  variant={options.orientation === 'portrait' ? 'primary' : 'outline'}
+                  variant={options.orientation === 'portrait' ? 'default' : 'outline'}
                   onClick={() => setOptions({...options, orientation: 'portrait'})}
                   className="rounded-xl h-12 font-bold"
                 >
@@ -311,7 +311,7 @@ export function JpgToPdfTool() {
                   Portrait
                 </Button>
                 <Button 
-                  variant={options.orientation === 'landscape' ? 'primary' : 'outline'}
+                  variant={options.orientation === 'landscape' ? 'default' : 'outline'}
                   onClick={() => setOptions({...options, orientation: 'landscape'})}
                   className="rounded-xl h-12 font-bold"
                 >
@@ -325,14 +325,14 @@ export function JpgToPdfTool() {
               <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Page Size</label>
               <div className="grid grid-cols-2 gap-3">
                 <Button 
-                  variant={options.pageSize === 'a4' ? 'primary' : 'outline'}
+                  variant={options.pageSize === 'a4' ? 'default' : 'outline'}
                   onClick={() => setOptions({...options, pageSize: 'a4'})}
                   className="rounded-xl h-12 font-bold"
                 >
                   A4
                 </Button>
                 <Button 
-                  variant={options.pageSize === 'letter' ? 'primary' : 'outline'}
+                  variant={options.pageSize === 'letter' ? 'default' : 'outline'}
                   onClick={() => setOptions({...options, pageSize: 'letter'})}
                   className="rounded-xl h-12 font-bold"
                 >
@@ -347,7 +347,7 @@ export function JpgToPdfTool() {
                 {(['no', 'small', 'big'] as const).map(m => (
                   <Button 
                     key={m}
-                    variant={options.margin === m ? 'primary' : 'outline'}
+                    variant={options.margin === m ? 'default' : 'outline'}
                     onClick={() => setOptions({...options, margin: m})}
                     className="rounded-xl h-10 text-xs font-bold capitalize"
                   >
