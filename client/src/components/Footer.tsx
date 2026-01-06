@@ -6,7 +6,7 @@ export const Footer = memo(function Footer() {
   return (
     <footer className="bg-white border-t border-border/50 py-12 md:py-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
           <div className="space-y-4">
             <div className="flex items-center gap-2 font-display font-bold text-xl">
               Pixel<span className="text-primary">Press</span>
@@ -19,12 +19,18 @@ export const Footer = memo(function Footer() {
           
           <div>
             <h4 className="font-semibold mb-4">Tools</h4>
-            <ul className="space-y-2 text-sm text-muted-foreground">
+            <ul className="grid grid-cols-2 gap-x-8 gap-y-2 text-sm text-muted-foreground">
               <li><Link href="/compress-png" className="hover:text-primary transition-colors">Compress PNG</Link></li>
               <li><Link href="/compress-jpeg" className="hover:text-primary transition-colors">Compress JPEG</Link></li>
               <li><Link href="/compress-webp" className="hover:text-primary transition-colors">Convert to WebP</Link></li>
-              <li><Link href="/converter" className="hover:text-primary transition-colors">Format Converter</Link></li>
               <li><Link href="/resize-image" className="hover:text-primary transition-colors">Resize Image</Link></li>
+              <li><Link href="/png-to-jpg" className="hover:text-primary transition-colors">PNG to JPG</Link></li>
+              <li><Link href="/jpg-to-png" className="hover:text-primary transition-colors">JPG to PNG</Link></li>
+              <li><Link href="/pdf-to-jpg" className="hover:text-primary transition-colors">PDF to JPG</Link></li>
+              <li><Link href="/jpg-to-pdf" className="hover:text-primary transition-colors">JPG to PDF</Link></li>
+              <li><Link href="/png-to-webp" className="hover:text-primary transition-colors">PNG to WebP</Link></li>
+              <li><Link href="/webp-to-png" className="hover:text-primary transition-colors">WebP to PNG</Link></li>
+              <li className="col-span-2"><Link href="/all-converters" className="hover:text-primary transition-colors font-medium">All Converters</Link></li>
             </ul>
           </div>
 
