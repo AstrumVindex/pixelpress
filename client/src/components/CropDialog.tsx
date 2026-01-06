@@ -17,6 +17,7 @@ interface CropDialogProps {
 const ASPECT_RATIOS = [
   { label: "Freeform", value: "free" },
   { label: "1:1 (Square)", value: "1" },
+  { label: "Passport (3.5:4.5)", value: String(3.5 / 4.5) },
   { label: "4:5 (Portrait)", value: "0.8" },
   { label: "16:9 (Landscape)", value: "1.777" },
   { label: "3:2 (Camera)", value: "1.5" },
