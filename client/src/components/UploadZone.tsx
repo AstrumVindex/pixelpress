@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 
 interface UploadZoneProps {
-  onFileSelect: (file: File) => void;
+  onFileSelect: (files: File[]) => void;
   accept?: Accept;
   allowedFormats?: string;
   errorMessage?: string;
@@ -33,15 +33,14 @@ export const UploadZone = memo(function UploadZone({
     }
 
     if (acceptedFiles.length > 0) {
-      onFileSelect(acceptedFiles[0]);
+      onFileSelect(acceptedFiles);
     }
   }, [onFileSelect, toast, errorMessage]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept,
-    maxFiles: 1,
-    multiple: false
+    multiple: true
   });
 
   return (
@@ -83,19 +82,19 @@ export const UploadZone = memo(function UploadZone({
 
             <div className="space-y-2">
               <h2 className="text-2xl font-display font-semibold text-foreground">
-                {isDragActive ? "Drop it like it's hot!" : "Upload an image"}
+                {isDragActive ? "Drop it like it's hot!" : "Upload images"}
               </h2>
               <p className="text-muted-foreground text-base max-w-sm mx-auto">
-                Drag and drop your image here, or click to browse.
+                Drag and drop your images here, or click to browse.
                 <br />
                 <span className="text-xs uppercase tracking-wider font-medium opacity-60 mt-2 block">
-                  Supports {allowedFormats}
+                  Supports {allowedFormats} - Multiple files allowed
                 </span>
               </p>
             </div>
 
             <Button size="lg" className="rounded-full px-10 h-14 text-lg font-bold shadow-xl shadow-primary/20 mt-4 hover:scale-105 active:scale-95 transition-transform">
-              Select Image
+              Select Images
             </Button>
           </div>
         </div>
@@ -103,8 +102,8 @@ export const UploadZone = memo(function UploadZone({
         <div className="mt-8 grid grid-cols-3 gap-4 text-center">
           {[
             { label: "No Uploads", desc: "100% Client-side" },
-            { label: "Unlimited", desc: "No file size limits" },
-            { label: "Lightning Fast", desc: "Instant compression" }
+            { label: "Bulk Upload", desc: "Multiple files at once" },
+            { label: "Mobile Safe", desc: "Sequential processing" }
           ].map((item, i) => (
             <div key={i} className="bg-white/40 p-3 rounded-xl border border-white/20">
               <div className="font-semibold text-sm text-foreground">{item.label}</div>

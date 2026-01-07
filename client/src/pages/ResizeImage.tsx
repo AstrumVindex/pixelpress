@@ -125,7 +125,7 @@ export default function ResizeImage() {
             
             {!originalFile && (
               <div className="mt-8">
-                <UploadZone onFileSelect={handleFileSelect} />
+                <UploadZone onFileSelect={(files) => files[0] && handleFileSelect(files[0])} />
               </div>
             )}
 
@@ -177,7 +177,7 @@ export default function ResizeImage() {
                   <CropDialog
                     open={cropDialogOpen}
                     onOpenChange={setCropDialogOpen}
-                    image={originalPreviewUrl}
+                    image={originalPreviewUrl!}
                     onCropComplete={(croppedBlob) => {
                       const file = new File([croppedBlob], originalFile?.name || "cropped.jpg", { type: "image/jpeg" });
                       handleFileSelect(file);
