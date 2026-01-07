@@ -1,16 +1,13 @@
-import { Helmet } from "react-helmet";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { JpgToPdfTool } from "@/components/JpgToPdfTool";
 import { motion } from "framer-motion";
+import { SeoContent } from "@/components/SeoContent";
+import { seoData } from "@/data/seoContent";
 
 export default function JpgToPdfPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50/50 via-white to-indigo-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
-      <Helmet>
-        <title>JPG to PDF Converter - Advanced Options | PixelPress</title>
-        <meta name="description" content="Convert JPG images to PDF with advanced options. Control orientation, margins, and page size. Merge multiple images into a single PDF document securely in your browser." />
-      </Helmet>
       <Header />
 
       <main className="pt-24 pb-20 px-4 md:px-6">
@@ -29,6 +26,8 @@ export default function JpgToPdfPage() {
           </motion.div>
 
           <JpgToPdfTool />
+          
+          <SeoContent data={seoData["jpg-to-pdf"] as any} />
         </div>
       </main>
       <Footer />

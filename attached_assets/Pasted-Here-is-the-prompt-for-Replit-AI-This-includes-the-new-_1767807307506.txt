@@ -1,0 +1,278 @@
+Here is the prompt for Replit AI. This includes the new competitor-analyzed data, the updated SEO component logic, and the Footer integration.
+
+---
+
+### **Prompt for Replit AI**
+
+**Task:** Upgrade the SEO content, structure, and metadata for the entire application to match competitors like iLovePDF and Smallpdf.
+
+**Objectives:**
+
+1. **Install `react-helmet-async**` to manage dynamic `<head>` tags (Title, Description) for better ranking.
+2. **Create a central SEO Data file** containing rich, keyword-optimized content (Headings, Steps, FAQs) for every route.
+3. **Update the `SeoContent` component** to render this rich content (bold text, lists, FAQs) below the tool.
+4. **Add a Footer** with internal links to improve site crawlability.
+
+**Step 1: Install Dependencies**
+Install `react-helmet-async`.
+
+**Step 2: Create `src/data/seoContent.js**`
+Replace the existing content with this competitor-analyzed data structure:
+
+```javascript
+export const seoData = {
+  "jpg-to-pdf": {
+    title: "JPG to PDF Converter - Merge Photos to PDF Online | PixelPress",
+    description: "Convert JPG images to PDF in seconds. Adjust orientation, margins, and merge multiple photos into one PDF file. 100% Free & Secure.",
+    keywords: "jpg to pdf, image to pdf, combine jpg to pdf, merge photos to pdf, jpg to pdf converter free online",
+    heading: "Convert JPG Images to PDF for Free",
+    content: [
+      {
+        title: "How to convert JPG to PDF online?",
+        type: "steps",
+        items: [
+          "Click 'Select Files' to upload your JPG images.",
+          "Drag and drop images to reorder them.",
+          "Adjust page orientation (Portrait/Landscape) and margins.",
+          "Check 'Merge all images' to create a single PDF document.",
+          "Click 'Convert to PDF' and download your file instantly."
+        ]
+      },
+      {
+        title: "Best Free JPG to PDF Converter",
+        type: "features",
+        items: [
+          "**No Limits:** Convert as many images as you want without restrictions.",
+          "**Privacy First:** Unlike other tools, we process files in your browser. Your photos never leave your device.",
+          "**Custom Formatting:** Professional A4/Letter sizing with adjustable margins.",
+          "**Universal Support:** Works on Windows, Mac, Linux, iPhone, and Android."
+        ]
+      },
+      {
+        title: "Why convert images to PDF?",
+        type: "text",
+        text: "PDFs are the global standard for sharing documents. Converting your JPGs to PDF ensures your images look exactly the same on every screen and printer. It's perfect for submitting assignments, portfolios, or legal documents."
+      },
+      {
+        title: "FAQ",
+        type: "faq",
+        items: [
+          { q: "Can I combine multiple JPGs into one PDF?", a: "Yes! Simply upload all your images, check the 'Merge' option, and we will combine them into a single document." },
+          { q: "Is it safe to use PixelPress?", a: "Absolutely. We use client-side processing, meaning your personal images are not uploaded to a remote server. They stay on your device." },
+          { q: "Does the quality decrease?", a: "No. We use high-fidelity conversion engines to preserve the original resolution of your photos." }
+        ]
+      }
+    ]
+  },
+  "png-to-jpg": {
+    title: "PNG to JPG Converter - Convert with Transparency Handling | PixelPress",
+    description: "Convert PNG to JPG online for free. Automatically handle transparency with white backgrounds. Fast, high-quality, and secure.",
+    keywords: "png to jpg, convert png to jpg, png to jpg high quality, transparent png to jpg, change png to jpg",
+    heading: "Convert PNG to JPG High Quality",
+    content: [
+      {
+        title: "How to convert PNG to JPG?",
+        type: "steps",
+        items: [
+          "Upload your PNG file(s) to the converter.",
+          "Our tool automatically fills transparent backgrounds with white.",
+          "Wait for the high-quality conversion to finish.",
+          "Download your new JPG image."
+        ]
+      },
+      {
+        title: "Why use our PNG to JPG tool?",
+        type: "features",
+        items: [
+          "**Smart Transparency:** We automatically detect transparent areas and fill them with a clean white background, preventing the 'black background' issue.",
+          "**Bulk Conversion:** Save time by converting dozens of images at once.",
+          "**Lossless Quality:** We optimize the compression to give you the smallest file size without visible quality loss."
+        ]
+      }
+    ]
+  },
+  "jpg-to-png": {
+    title: "JPG to PNG Converter - Free Online Image Converter | PixelPress",
+    description: "Convert JPG to PNG format instantly. Best for creating high-quality graphics and web images. No software installation required.",
+    keywords: "jpg to png, convert jpg to png, jpg to png converter, image converter, free online converter",
+    heading: "Convert JPG to PNG Online",
+    content: [
+      {
+        title: "Fast & Secure JPG to PNG Conversion",
+        type: "text",
+        text: "Need a PNG for better quality or web use? Our tool converts your JPEG/JPG files into Portable Network Graphics (PNG) format in milliseconds. It's fast, free, and runs entirely in your browser."
+      },
+      {
+        title: "Key Features",
+        type: "features",
+        items: [
+          "**Zero Quality Loss:** Perfect for logos and text-heavy images.",
+          "**No Watermarks:** We never add watermarks to your converted files.",
+          "**Cross-Platform:** Use it on your phone, tablet, or desktop computer."
+        ]
+      }
+    ]
+  },
+  "pdf-to-jpg": {
+    title: "PDF to JPG - Extract Images from PDF Online | PixelPress",
+    description: "Turn PDF pages into high-quality JPG images. Extract photos from PDF documents easily. Free, fast, and secure.",
+    keywords: "pdf to jpg, convert pdf to image, extract images from pdf, pdf to photo converter",
+    heading: "Convert PDF Pages to JPG Images",
+    content: [
+      {
+        title: "How to turn PDF into Images?",
+        type: "steps",
+        items: [
+          "Upload your PDF document.",
+          "Select the pages you want to convert (or convert all).",
+          "Click 'Convert' to extract them as high-quality JPGs.",
+          "Download your images individually or as a ZIP file."
+        ]
+      },
+      {
+        title: "Why convert PDF to JPG?",
+        type: "text",
+        text: "Sharing a single page from a PDF on social media (like Instagram or Twitter) is impossible. Converting your PDF to JPG allows you to share your documents as images easily."
+      }
+    ]
+  }
+};
+
+```
+
+**Step 3: Update `src/components/SeoContent.jsx**`
+Update the component to handle the new `text` blocks and bold formatting (`**text**`) inside features.
+
+```jsx
+import React from 'react';
+import { Helmet } from 'react-helmet-async';
+
+const SeoContent = ({ data }) => {
+  if (!data) return null;
+
+  return (
+    <>
+      <Helmet>
+        <title>{data.title}</title>
+        <meta name="description" content={data.description} />
+        <meta name="keywords" content={data.keywords} />
+        <link rel="canonical" href={window.location.href} />
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content={data.title} />
+        <meta property="og:description" content={data.description} />
+      </Helmet>
+
+      <div className="max-w-4xl mx-auto mt-20 px-6 lg:px-8 pb-16">
+        <div className="border-t border-slate-200 pt-16">
+          <h2 className="text-3xl font-bold text-slate-900 mb-8 text-center">{data.heading}</h2>
+
+          <div className="grid md:grid-cols-2 gap-x-12 gap-y-10">
+            {data.content.map((block, index) => (
+              <div key={index} className="prose prose-slate">
+                <h3 className="text-xl font-bold text-slate-800 mb-3">{block.title}</h3>
+                
+                {block.type === 'steps' && (
+                  <ol className="list-decimal pl-5 space-y-2 text-slate-600">
+                    {block.items.map((item, i) => <li key={i}>{item}</li>)}
+                  </ol>
+                )}
+
+                {block.type === 'features' && (
+                  <ul className="list-disc pl-5 space-y-2 text-slate-600">
+                    {block.items.map((item, i) => (
+                      <li key={i} dangerouslySetInnerHTML={{ 
+                        __html: item.replace(/\*\*(.*?)\*\*/g, '<span class="font-bold text-slate-800">$1</span>') 
+                      }} />
+                    ))}
+                  </ul>
+                )}
+
+                {block.type === 'text' && (
+                  <p className="text-slate-600 leading-relaxed">{block.text}</p>
+                )}
+
+                {block.type === 'faq' && (
+                  <div className="space-y-4 mt-4">
+                    {block.items.map((faq, i) => (
+                      <div key={i} className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                        <p className="font-bold text-slate-800 mb-2 text-sm">❓ {faq.q}</p>
+                        <p className="text-slate-600 text-sm">✅ {faq.a}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </>
+  );
+};
+
+export default SeoContent;
+
+```
+
+**Step 4: Update `src/App.jsx**`
+
+1. Wrap the App with `HelmetProvider`.
+2. Add a global Footer component to improve internal linking and crawlability.
+
+```jsx
+import React from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { HelmetProvider } from 'react-helmet-async';
+import Navbar from './components/Navbar';
+import FileConverter from './components/FileConverter';
+import JpgToPdfPage from './pages/JpgToPdfPage';
+import AllConverters from './pages/AllConverters';
+
+const Footer = () => (
+  <footer className="bg-white border-t border-slate-100 py-12 mt-auto">
+    <div className="max-w-7xl mx-auto px-4 grid md:grid-cols-4 gap-8 text-sm">
+      <div>
+        <h4 className="font-bold text-slate-900 mb-4">Converters</h4>
+        <ul className="space-y-2 text-slate-500">
+          <li><a href="/jpg-to-pdf" className="hover:text-indigo-600">JPG to PDF</a></li>
+          <li><a href="/png-to-jpg" className="hover:text-indigo-600">PNG to JPG</a></li>
+          <li><a href="/jpg-to-png" className="hover:text-indigo-600">JPG to PNG</a></li>
+          <li><a href="/pdf-to-jpg" className="hover:text-indigo-600">PDF to JPG</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4 className="font-bold text-slate-900 mb-4">Company</h4>
+        <ul className="space-y-2 text-slate-500">
+          <li><a href="/" className="hover:text-indigo-600">Home</a></li>
+          <li><a href="#" className="hover:text-indigo-600">About Us</a></li>
+          <li><a href="#" className="hover:text-indigo-600">Contact</a></li>
+        </ul>
+      </div>
+    </div>
+  </footer>
+);
+
+export default function App() {
+  return (
+    <HelmetProvider>
+      <BrowserRouter>
+        <div className="min-h-screen flex flex-col bg-slate-50 font-sans text-slate-900">
+          <Navbar />
+          <div className="flex-grow">
+             <Routes>
+               <Route path="/" element={<AllConverters />} />
+               <Route path="/all-converters" element={<AllConverters />} />
+               <Route path="/jpg-to-pdf" element={<JpgToPdfPage />} />
+               <Route path="/png-to-jpg" element={<FileConverter inputFormat="png" outputFormat="jpg" seoKey="png-to-jpg" />} />
+               <Route path="/jpg-to-png" element={<FileConverter inputFormat="jpg" outputFormat="png" seoKey="jpg-to-png" />} />
+               <Route path="/pdf-to-jpg" element={<FileConverter inputFormat="pdf" outputFormat="jpg" seoKey="pdf-to-jpg" />} />
+             </Routes>
+          </div>
+          <Footer />
+        </div>
+      </BrowserRouter>
+    </HelmetProvider>
+  );
+}
+
+```

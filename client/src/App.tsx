@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/hooks/use-theme";
 import { lazy, Suspense } from "react";
+import { HelmetProvider } from 'react-helmet-async';
 
 // Lazy load pages for better performance
 const Home = lazy(() => import("@/pages/Home"));
@@ -32,24 +33,28 @@ function Router() {
         <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
       </div>
     }>
-      <Switch>
-        <Route path="/" component={Home} />
-        <Route path="/compress-png" component={CompressPNG} />
-        <Route path="/compress-jpeg" component={CompressJPEG} />
-        <Route path="/compress-webp" component={CompressWebP} />
-        <Route path="/resize-image" component={ResizeImage} />
-        <Route path="/converter" component={Converter} />
-        <Route path="/all-converters" component={AllConverters} />
-        <Route path="/png-to-jpg" component={PngToJpg} />
-        <Route path="/jpg-to-png" component={JpgToPng} />
-        <Route path="/pdf-to-jpg" component={PdfToJpg} />
-        <Route path="/jpg-to-pdf" component={JpgToPdfPage} />
-        <Route path="/png-to-webp" component={PngToWebp} />
-        <Route path="/webp-to-png" component={WebpToPng} />
-        <Route path="/privacy" component={PrivacyPolicy} />
-        <Route path="/terms" component={TermsOfService} />
-        <Route component={NotFound} />
-      </Switch>
+      <div className="flex flex-col min-h-screen">
+        <main className="flex-grow">
+          <Switch>
+            <Route path="/" component={Home} />
+            <Route path="/compress-png" component={CompressPNG} />
+            <Route path="/compress-jpeg" component={CompressJPEG} />
+            <Route path="/compress-webp" component={CompressWebP} />
+            <Route path="/resize-image" component={ResizeImage} />
+            <Route path="/converter" component={Converter} />
+            <Route path="/all-converters" component={AllConverters} />
+            <Route path="/png-to-jpg" component={PngToJpg} />
+            <Route path="/jpg-to-png" component={JpgToPng} />
+            <Route path="/pdf-to-jpg" component={PdfToJpg} />
+            <Route path="/jpg-to-pdf" component={JpgToPdfPage} />
+            <Route path="/png-to-webp" component={PngToWebp} />
+            <Route path="/webp-to-png" component={WebpToPng} />
+            <Route path="/privacy" component={PrivacyPolicy} />
+            <Route path="/terms" component={TermsOfService} />
+            <Route component={NotFound} />
+          </Switch>
+        </main>
+      </div>
     </Suspense>
   );
 }
@@ -58,15 +63,16 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="light" storageKey="pixelpress-theme">
-        <TooltipProvider>
-          <Toaster />
-          <ScrollToTop />
-          <Router />
-        </TooltipProvider>
+        <HelmetProvider>
+          <TooltipProvider>
+            <Toaster />
+            <ScrollToTop />
+            <Router />
+          </TooltipProvider>
+        </HelmetProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );
 }
-
 
 export default App;
