@@ -7,6 +7,7 @@ import * as pdfjsLib from 'pdfjs-dist';
 import jsPDF from 'jspdf';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
+import { convertImageFormat } from '@/utils/converterEngine';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js`;
 
@@ -107,29 +108,6 @@ export function FileConverter({ inputFormat, outputFormat }: FileConverterProps)
     setProgressTxt('Processing...');
   }, [files]);
 
-  const convertImageToImage = async (file: File, format: string): Promise<Blob> => {
-    const imageBitmap = await createImageBitmap(file);
-    const canvas = document.createElement('canvas');
-    canvas.width = imageBitmap.width;
-    canvas.height = imageBitmap.height;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) throw new Error('Canvas error');
-
-    if (format === 'jpeg' || format === 'jpg') {
-      ctx.fillStyle = '#FFFFFF';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-    }
-    ctx.drawImage(imageBitmap, 0, 0);
-
-    return new Promise((resolve, reject) => {
-      const mimeType = format === 'jpg' ? 'image/jpeg' : `image/${format}`;
-      canvas.toBlob((blob) => {
-        if (blob) resolve(blob);
-        else reject(new Error('Image conversion failed'));
-      }, mimeType, 0.92);
-    });
-  };
-
   const convertImageToPdf = async (file: File): Promise<Blob> => {
     const img = new Image();
     const url = URL.createObjectURL(file);
@@ -219,7 +197,7 @@ export function FileConverter({ inputFormat, outputFormat }: FileConverterProps)
             resultBlob = await convertImageToPdf(file);
             resultExtension = 'pdf';
           } else {
-            resultBlob = await convertImageToImage(file, outFormat);
+            resultBlob = await convertImageFormat(file, outFormat);
             resultExtension = outFormat === 'jpg' ? 'jpg' : outFormat;
           }
         }
