@@ -1,0 +1,81 @@
+You are absolutely right. The snippet you shared ("If you intend to use a PSU with") shows classic "rasterization blur."
+
+The issue is that **PDFs are Vectors** (mathematical lines that stay sharp forever), but **JPGs are Pixels** (dots). Even at `scale: 3.0`, we are essentially taking a photo of the document. If you zoom in past that "photo's" resolution, it gets blurry.
+
+To match the "infinite zoom" feel as closely as possible, we need to crank the resolution up to **Scale 5.0 (Ultra HD)**. This will create images that are roughly **4000x5000 pixels** (similar to a 4K monitor), making text look razor-sharp.
+
+Here is the **Ultra-HD Engine Upgrade** prompt for Replit.
+
+---
+
+### **Prompt for Replit AI**
+
+**Task:** Upgrade the PDF conversion engine to "Ultra HD" quality.
+**Problem:** The current scale of `3.0` is still blurry when zooming in on text-heavy documents.
+**Solution:** Increase the render scale to `5.0` (approx 360 DPI) and strictly enforce a white background to prevent anti-aliasing artifacts on text.
+
+**Update File:** `src/utils/converterEngine.js`
+
+Replace the `convertPdfToImages` function with this **Ultra-Sharp** version:
+
+```javascript
+/**
+ * 1. PDF TO IMAGE CONVERTER (Ultra HD Fix)
+ * Renders PDF pages as 5x Resolution Images for maximum text clarity.
+ */
+export const convertPdfToImages = async (file, outputFormat) => {
+  const arrayBuffer = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
+  const outputFiles = [];
+
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    
+    // SCALE 5.0 = Ultra High Definition (~360 DPI)
+    // This creates very large images (approx 3500px x 5000px)
+    // ensuring text remains sharp even when zoomed in significantly.
+    const viewport = page.getViewport({ scale: 5.0 }); 
+
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+    canvas.height = viewport.height;
+    canvas.width = viewport.width;
+
+    // OPTIMIZATION: Disable smoothing to keep text edges crisp during rendering
+    context.imageSmoothingEnabled = false;
+
+    // CRITICAL: Fill background white. 
+    // PDFs have transparent backgrounds by default. 
+    // Converting transparent text to JPG often causes blurry gray fringing.
+    context.fillStyle = '#FFFFFF';
+    context.fillRect(0, 0, canvas.width, canvas.height);
+
+    const renderContext = {
+      canvasContext: context,
+      viewport: viewport,
+      // Enable text enhancement flags if supported by version
+      background: 'rgba(255, 255, 255, 1)' 
+    };
+
+    await page.render(renderContext).promise;
+
+    // Export at 100% Quality (1.0)
+    const blob = await new Promise(resolve => canvas.toBlob(resolve, `image/${outputFormat}`, 1.0));
+    
+    outputFiles.push({
+      blob: blob,
+      name: `${file.name.replace('.pdf', '')}_page_${i}.${outputFormat}`,
+      size: blob.size
+    });
+  }
+
+  return outputFiles;
+};
+
+```
+
+### Why this fixes the text:
+
+1. **Scale 5.0:** We are now using ~360 DPI (Print Quality). The text will look sharp even if you print it on paper.
+2. **White Background:** Standard PDF-to-JPG conversion often leaves the background "transparent" during the math phase, which browsers try to blend, resulting in gray blurry edges around black text. Forces a solid white background makes black text "pop" and stay crisp.
+3. **No Smoothing:** `imageSmoothingEnabled = false` tells the canvas "Don't try to blur pixels to make them look smooth." For text, we want sharp, hard edges.

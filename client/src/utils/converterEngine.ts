@@ -17,8 +17,8 @@ const loadImage = (file: File): Promise<HTMLImageElement> => {
 };
 
 /**
- * 1. PDF TO IMAGE CONVERTER (High Quality Fix)
- * Renders PDF pages as High-Res Images (Scale 3.0)
+ * 1. PDF TO IMAGE CONVERTER (Ultra HD Fix)
+ * Renders PDF pages as 5x Resolution Images for maximum text clarity.
  */
 export const convertPdfToImages = async (file: File, outputFormat: string) => {
   const arrayBuffer = await file.arrayBuffer();
@@ -28,8 +28,10 @@ export const convertPdfToImages = async (file: File, outputFormat: string) => {
   for (let i = 1; i <= pdf.numPages; i++) {
     const page = await pdf.getPage(i);
     
-    // SCALE 3.0 = 300% Resolution (Crisp Text)
-    const viewport = page.getViewport({ scale: 3.0 }); 
+    // SCALE 5.0 = Ultra High Definition (~360 DPI)
+    // This creates very large images (approx 3500px x 5000px)
+    // ensuring text remains sharp even when zoomed in significantly.
+    const viewport = page.getViewport({ scale: 5.0 }); 
 
     const canvas = document.createElement('canvas');
     const context = canvas.getContext('2d');
@@ -38,7 +40,23 @@ export const convertPdfToImages = async (file: File, outputFormat: string) => {
     canvas.height = viewport.height;
     canvas.width = viewport.width;
 
-    await page.render({ canvasContext: context, viewport: viewport }).promise;
+    // OPTIMIZATION: Disable smoothing to keep text edges crisp during rendering
+    context.imageSmoothingEnabled = false;
+
+    // CRITICAL: Fill background white. 
+    // PDFs have transparent backgrounds by default. 
+    // Converting transparent text to JPG often causes blurry gray fringing.
+    context.fillStyle = '#FFFFFF';
+    context.fillRect(0, 0, canvas.width, canvas.height);
+
+    const renderContext = {
+      canvasContext: context,
+      viewport: viewport,
+      // Enable text enhancement flags if supported by version
+      background: 'rgba(255, 255, 255, 1)' 
+    };
+
+    await page.render(renderContext).promise;
 
     const mimeType = outputFormat === 'png' ? 'image/png' : 'image/jpeg';
     const blob = await new Promise<Blob>((resolve) => 
