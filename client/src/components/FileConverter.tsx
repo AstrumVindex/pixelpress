@@ -1,9 +1,13 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { CloudUpload, X, FileIcon, AlertCircle, Download, Zap, FileText, Images, Check } from 'lucide-react';
+import { CloudUpload, X, FileIcon, AlertCircle, Download, Zap, FileText, Images, Check, Package } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { convertImageFormat, convertPdfToImages } from '@/utils/converterEngine';
+import JSZip from 'jszip';
+import { saveAs } from 'file-saver';
+import { SeoContent } from './SeoContent';
+import { seoData } from '../data/seoContent';
 
 const MIME_TYPES: Record<string, string> = {
   png: 'image/png',
@@ -16,6 +20,7 @@ const MIME_TYPES: Record<string, string> = {
 interface FileConverterProps {
   inputFormat: string;
   outputFormat: string;
+  seoKey?: string;
 }
 
 interface FileWithPreview {
@@ -28,14 +33,16 @@ interface FileWithPreview {
   size?: number;
 }
 
-export function FileConverter({ inputFormat, outputFormat }: FileConverterProps) {
+export function FileConverter({ inputFormat, outputFormat, seoKey }: FileConverterProps) {
   const [files, setFiles] = useState<FileWithPreview[]>([]);
   const [error, setError] = useState('');
   const [isDragging, setIsDragging] = useState(false);
   const [isConverting, setIsConverting] = useState(false);
+  const [isZipping, setIsZipping] = useState(false);
   const [progressTxt, setProgressTxt] = useState('Processing...');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const [isDone, setIsDone] = useState(false);
 
   useEffect(() => {
     return () => {
@@ -109,6 +116,7 @@ export function FileConverter({ inputFormat, outputFormat }: FileConverterProps)
     setFiles([]);
     setError('');
     setProgressTxt('Processing...');
+    setIsDone(false);
   }, [files]);
 
   const handleConvertAll = async () => {
@@ -154,6 +162,7 @@ export function FileConverter({ inputFormat, outputFormat }: FileConverterProps)
       }
 
       setFiles(newProcessedFiles);
+      setIsDone(true);
       toast({
         title: "Conversion complete",
         description: "Files converted with high quality."
@@ -164,6 +173,32 @@ export function FileConverter({ inputFormat, outputFormat }: FileConverterProps)
     } finally {
       setIsConverting(false);
       setProgressTxt('Done!');
+    }
+  };
+
+  const handleDownloadZip = async () => {
+    setIsZipping(true);
+    try {
+      const zip = new JSZip();
+      
+      const promises = files.map(async (file) => {
+        if (file.status === 'done' && file.downloadUrl) {
+          const response = await fetch(file.downloadUrl);
+          const blob = await response.blob();
+          const fileName = file.convertedName || `${file.file.name.split('.')[0]}-converted.${outputFormat.toLowerCase()}`;
+          zip.file(fileName, blob);
+        }
+      });
+
+      await Promise.all(promises);
+      
+      const content = await zip.generateAsync({ type: "blob" });
+      saveAs(content, `pixelpress_${inputFormat}_to_${outputFormat}.zip`);
+    } catch (err) {
+      console.error("Zip failed", err);
+      setError("Failed to create ZIP file.");
+    } finally {
+      setIsZipping(false);
     }
   };
 
@@ -289,13 +324,46 @@ export function FileConverter({ inputFormat, outputFormat }: FileConverterProps)
             </Button>
           )}
 
-          {doneCount > 0 && pendingCount === 0 && !isConverting && (
-            <div className="text-center p-6 bg-green-50 dark:bg-green-900/20 rounded-2xl border border-green-200 dark:border-green-800">
-              <Check className="w-10 h-10 text-green-600 mx-auto mb-2" />
+          {isDone && (
+            <div className="text-center p-6 bg-green-50 dark:bg-green-900/20 rounded-2xl border border-green-200 dark:border-green-800 space-y-4">
+              <Check className="w-10 h-10 text-green-600 mx-auto" />
               <p className="font-bold text-green-700 dark:text-green-400">All files converted!</p>
-              <Button variant="link" onClick={resetAll} className="text-green-600 mt-2">Convert More</Button>
+              
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Button 
+                  onClick={handleDownloadZip}
+                  disabled={isZipping}
+                  className="flex-1 rounded-xl h-12 font-bold bg-green-600 hover:bg-green-700 text-white"
+                >
+                  {isZipping ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <span>Creating ZIP...</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <Package size={20}/>
+                      <span>Download All as ZIP</span>
+                    </div>
+                  )}
+                </Button>
+                
+                <Button 
+                  variant="outline"
+                  onClick={resetAll} 
+                  className="flex-1 rounded-xl h-12 font-bold"
+                >
+                  Convert More
+                </Button>
+              </div>
             </div>
           )}
+        </div>
+      )}
+
+      {seoKey && seoData[seoKey as keyof typeof seoData] && (
+        <div className="mt-12">
+          <SeoContent data={seoData[seoKey as keyof typeof seoData] as any} />
         </div>
       )}
     </div>

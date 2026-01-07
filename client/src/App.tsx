@@ -7,6 +7,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/hooks/use-theme";
 import { lazy, Suspense } from "react";
 import { HelmetProvider } from 'react-helmet-async';
+import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
 
 // Lazy load pages for better performance
 const Home = lazy(() => import("@/pages/Home"));
@@ -34,6 +36,7 @@ function Router() {
       </div>
     }>
       <div className="flex flex-col min-h-screen">
+        <Header />
         <main className="flex-grow">
           <Switch>
             <Route path="/" component={Home} />
@@ -54,6 +57,7 @@ function Router() {
             <Route component={NotFound} />
           </Switch>
         </main>
+        <Footer />
       </div>
     </Suspense>
   );
