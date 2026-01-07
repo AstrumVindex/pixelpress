@@ -1,0 +1,225 @@
+The issue is that PDFs often contain **Vector Text** (mathematical lines that stay sharp at any zoom), while JPGs are **Raster Images** (pixels). When you convert a PDF to JPG using standard browser tools, it usually defaults to "Screen Resolution" (72 DPI), which looks blurry when zoomed in.
+
+To fix this, we need to force the conversion engine to render the PDF at **300 DPI (High Resolution)** or roughly **3x the standard size**.
+
+Here is the logic to fix the blurriness.
+
+### **Prompt for Replit AI**
+
+**Task:** Fix the blurriness issue when converting PDF to JPG. The current output is low resolution. We need to implement a high-fidelity PDF rendering engine using `pdfjs-dist`.
+
+**Objectives:**
+
+1. **Install Library:** Install `pdfjs-dist` to handle PDF parsing.
+2. **Update Engine:** Rewrite `src/utils/converterEngine.js` to include a `convertPdfToImages` function.
+3. **High DPI Logic:** specificially set the `viewport scale` to **3.0** (this triples the resolution, making text crisp even when zoomed).
+4. **Update Component:** Ensure `FileConverter.jsx` calls this new function when the input is a PDF.
+
+**Step 1: Install Dependencies**
+Install `pdfjs-dist`.
+
+**Step 2: Update `src/utils/converterEngine.js**`
+Replace the entire file with this updated version that handles both Image-to-Image and PDF-to-Image with high quality.
+
+```javascript
+import { jsPDF } from "jspdf";
+import * as pdfjsLib from "pdfjs-dist";
+
+// Set the worker source for PDF.js (Essential for React)
+// Using unpkg CDN to ensure worker version matches library version
+pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+
+/**
+ * Helper: Load an image file
+ */
+const loadImage = (file) => {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.src = URL.createObjectURL(file);
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+  });
+};
+
+/**
+ * 1. PDF TO IMAGE CONVERTER (High Quality Fix)
+ * Renders PDF pages as High-Res Images (Scale 3.0)
+ */
+export const convertPdfToImages = async (file, outputFormat) => {
+  const arrayBuffer = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
+  const outputFiles = [];
+
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    
+    // SCALE 3.0 = 300% Resolution (Crisp Text)
+    // Standard scale is 1.0 (72 DPI). 3.0 gives us ~216 DPI which is print quality.
+    const viewport = page.getViewport({ scale: 3.0 }); 
+
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+    canvas.height = viewport.height;
+    canvas.width = viewport.width;
+
+    await page.render({ canvasContext: context, viewport: viewport }).promise;
+
+    const blob = await new Promise(resolve => canvas.toBlob(resolve, `image/${outputFormat}`, 1.0));
+    
+    outputFiles.push({
+      blob: blob,
+      name: `${file.name.replace('.pdf', '')}_page_${i}.${outputFormat}`,
+      size: blob.size
+    });
+  }
+
+  return outputFiles;
+};
+
+/**
+ * 2. IMAGE TO IMAGE CONVERTER
+ */
+export const convertImageFormat = async (file, outputFormat) => {
+  const img = await loadImage(file);
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+
+  // Use natural dimensions (don't resize down)
+  canvas.width = img.naturalWidth;
+  canvas.height = img.naturalHeight;
+
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+
+  // Handle PNG Transparency -> JPG White Background
+  if (outputFormat === 'jpg' || outputFormat === 'jpeg') {
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }
+
+  ctx.drawImage(img, 0, 0);
+
+  const mimeType = outputFormat === 'png' ? 'image/png' : 'image/jpeg';
+  const blob = await new Promise(resolve => canvas.toBlob(resolve, mimeType, 1.0)); // 1.0 Quality
+  
+  return [{ blob, name: file.name.replace(/\.[^/.]+$/, `.${outputFormat}`), size: blob.size }];
+};
+
+/**
+ * 3. IMAGE TO PDF GENERATOR
+ */
+export const generatePDF = async (files, options) => {
+  const { orientation, pageSize, margin } = options;
+  const doc = new jsPDF({
+    orientation: orientation === 'portrait' ? 'p' : 'l',
+    unit: 'mm',
+    format: pageSize === 'letter' ? 'letter' : 'a4'
+  });
+
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  
+  let marginSize = 0;
+  if (margin === 'small') marginSize = 10;
+  if (margin === 'big') marginSize = 25;
+
+  const workableWidth = pageWidth - (marginSize * 2);
+  const workableHeight = pageHeight - (marginSize * 2);
+
+  for (let i = 0; i < files.length; i++) {
+    const img = await loadImage(files[i]);
+    const imgRatio = img.width / img.height;
+    const pageRatio = workableWidth / workableHeight;
+
+    let finalWidth, finalHeight;
+    if (imgRatio > pageRatio) {
+      finalWidth = workableWidth;
+      finalHeight = finalWidth / imgRatio;
+    } else {
+      finalHeight = workableHeight;
+      finalWidth = finalHeight * imgRatio;
+    }
+
+    const x = marginSize + (workableWidth - finalWidth) / 2;
+    const y = marginSize + (workableHeight - finalHeight) / 2;
+
+    if (i > 0) doc.addPage();
+    doc.addImage(img, 'JPEG', x, y, finalWidth, finalHeight, null, 'FAST');
+  }
+
+  return doc.output('blob');
+};
+
+```
+
+**Step 3: Update `src/components/FileConverter.jsx**`
+Update the `handleConvert` function to distinguish between PDF inputs and Image inputs.
+
+```jsx
+// Import both functions
+import { convertImageFormat, convertPdfToImages } from '../utils/converterEngine';
+
+// ... Inside FileConverter component ...
+
+const handleConvert = async () => {
+  setIsConverting(true);
+  try {
+    let newProcessedFiles = []; // Temp array to store results
+
+    for (const fileObj of files) {
+      if (fileObj.status === 'done') {
+        newProcessedFiles.push(fileObj);
+        continue;
+      }
+
+      let results = [];
+      
+      // BRANCH LOGIC: Check if input is PDF
+      if (inputFormat === 'pdf') {
+        // PDF returns an ARRAY of images (one per page)
+        const pdfImages = await convertPdfToImages(fileObj.original, outputFormat);
+        
+        // Map PDF pages to file objects
+        results = pdfImages.map(imgData => ({
+          original: fileObj.original, // Keep reference
+          name: fileObj.name,
+          convertedName: imgData.name,
+          downloadUrl: URL.createObjectURL(imgData.blob),
+          size: imgData.size,
+          status: 'done'
+        }));
+        
+      } else {
+        // Normal Image to Image conversion
+        const imgDataArray = await convertImageFormat(fileObj.original, outputFormat);
+        const imgData = imgDataArray[0];
+        
+        results = [{
+          ...fileObj,
+          convertedName: imgData.name,
+          downloadUrl: URL.createObjectURL(imgData.blob),
+          size: imgData.size,
+          status: 'done'
+        }];
+      }
+
+      newProcessedFiles = [...newProcessedFiles, ...results];
+    }
+
+    setFiles(newProcessedFiles);
+    setIsDone(true);
+
+  } catch (err) {
+    console.error(err);
+    setError('Conversion failed. Please check the file and try again.');
+  } finally {
+    setIsConverting(false);
+  }
+};
+
+```
+
+### Why Scale 3.0?
+
+* **Scale 1.0:** Renders at 72 pixels per inch. A standard A4 page is only ~595 pixels wide. If you zoom in, it looks like Minecraft blocks.
+* **Scale 3.0:** Renders at ~216 pixels per inch. That same A4 page is now ~1785 pixels wide. You can zoom in 300% before it starts to look blurry. This mimics the "Vector" feel while still being a JPG.
