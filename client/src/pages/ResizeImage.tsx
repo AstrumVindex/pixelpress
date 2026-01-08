@@ -329,7 +329,6 @@ export default function ResizeImage() {
           </section>
         </div>
       </main>
-      <Footer />
     </div>
   );
 }

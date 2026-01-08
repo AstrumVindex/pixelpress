@@ -373,7 +373,6 @@ export default function PixelPressConverter() {
           </div>
         </div>
       </main>
-      <Footer />
     </div>
   );
 }
