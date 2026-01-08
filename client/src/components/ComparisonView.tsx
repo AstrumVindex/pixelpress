@@ -93,14 +93,6 @@ export function ComparisonView({
       }
     }
   };
-        toast({
-          title: "Share failed",
-          description: "Could not share or copy to clipboard",
-          variant: "destructive"
-        });
-      }
-    }
-  };
 
   return (
     <div className="flex flex-col gap-6">
