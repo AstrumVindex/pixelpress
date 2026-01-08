@@ -164,8 +164,6 @@ export default function PrivacyPolicy() {
           </article>
         </div>
       </main>
-
-      <Footer />
     </div>
   );
 }

@@ -75,7 +75,6 @@ export default function AllConverters() {
           </div>
         </div>
       </main>
-      <Footer />
     </div>
   );
 }
