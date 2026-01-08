@@ -30,6 +30,8 @@ export function useImageCompressor(isResizeOnly = false) {
   
   // Common state
   const [isCompressing, setIsCompressing] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [progress, setProgress] = useState(0);
   const [settings, setSettings] = useState<CompressionSettings>(() => ({
     ...PRESETS[0].settings,
@@ -99,6 +101,17 @@ export function useImageCompressor(isResizeOnly = false) {
   const handleFiles = useCallback(async (newFileList: FileList | File[]) => {
     const incomingFiles = Array.from(newFileList);
     if (incomingFiles.length === 0) return;
+
+    setIsUploading(true);
+    setUploadProgress(0);
+
+    // Simulate upload progress
+    for (let i = 0; i <= 100; i += 10) {
+      setUploadProgress(i);
+      await new Promise(r => setTimeout(r, 20));
+    }
+
+    setIsUploading(false);
 
     const fileQueue: CompressedFileItem[] = incomingFiles.map(file => ({
       id: Math.random().toString(36).substr(2, 9),
@@ -250,6 +263,8 @@ export function useImageCompressor(isResizeOnly = false) {
     
     // Common
     isCompressing,
+    isUploading,
+    uploadProgress,
     settings,
     setSettings,
     reset

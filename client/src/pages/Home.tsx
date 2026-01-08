@@ -1,5 +1,5 @@
 import { Helmet } from "react-helmet";
-import { useState } from "react";
+import { useRef, useEffect, useState } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { UploadZone } from "@/components/UploadZone";
@@ -18,9 +18,12 @@ import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 
 export default function Home() {
+  const resultsRef = useRef<HTMLDivElement>(null);
   const {
     files,
     isCompressing,
+    isUploading,
+    uploadProgress,
     settings,
     setSettings,
     handleFiles,
@@ -29,6 +32,16 @@ export default function Home() {
   } = useImageCompressor();
 
   const [isZipping, setIsZipping] = useState(false);
+
+  // Auto-scroll to results when files are added
+  useEffect(() => {
+    if (files.length > 0 && !isUploading) {
+      const timer = setTimeout(() => {
+        resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [files.length, isUploading]);
 
   const handleDownloadZip = async () => {
     setIsZipping(true);
@@ -83,14 +96,34 @@ export default function Home() {
               </p>
             </motion.div>
             
-            <div className="mt-12">
+            <div className="mt-12 relative overflow-hidden rounded-3xl">
               <UploadZone onFileSelect={handleFiles} />
+              
+              <AnimatePresence>
+                {isUploading && (
+                  <motion.div 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="absolute inset-0 bg-white/90 dark:bg-slate-900/90 z-10 flex flex-col items-center justify-center"
+                  >
+                    <div className="w-64 bg-slate-100 dark:bg-slate-800 rounded-full h-2 mb-4 overflow-hidden">
+                      <motion.div 
+                        className="bg-primary h-full transition-all duration-100 ease-out" 
+                        initial={{ width: 0 }}
+                        animate={{ width: `${uploadProgress}%` }}
+                      />
+                    </div>
+                    <p className="font-bold text-primary animate-pulse">Uploading {uploadProgress}%</p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </section>
 
           {/* Main Tool Section */}
           {files.length > 0 && (
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 max-w-6xl mx-auto">
+            <div ref={resultsRef} className="grid grid-cols-1 lg:grid-cols-12 gap-8 max-w-6xl mx-auto scroll-mt-24">
               <div className="lg:col-span-4 space-y-6">
                 <div className="bg-white/70 backdrop-blur-xl border border-white/40 shadow-xl rounded-3xl p-6 sticky top-24">
                   <Controls settings={settings} onChange={setSettings} />
