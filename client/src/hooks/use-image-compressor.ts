@@ -53,32 +53,13 @@ export function useImageCompressor(isResizeOnly = false) {
   const isResizeModeRef = useRef(isResizeOnly);
   isResizeModeRef.current = isResizeOnly;
 
-  // Bulk file handler for compression pages - uses current settings
-  const handleFiles = useCallback(async (newFileList: FileList | File[]) => {
-    const incomingFiles = Array.from(newFileList);
-    if (incomingFiles.length === 0) return;
-
-    const fileQueue: CompressedFileItem[] = incomingFiles.map(file => ({
-      id: Math.random().toString(36).substr(2, 9),
-      original: file,
-      compressed: null,
-      name: file.name,
-      status: 'pending' as const,
-      originalSize: file.size,
-      compressedSize: 0,
-      saved: '0',
-      previewUrl: null
-    }));
-    
-    setFiles(prev => [...prev, ...fileQueue]);
+  // Sequential processing for mobile stability
+  const processQueue = useCallback(async (queue: CompressedFileItem[]) => {
     setIsCompressing(true);
-
-    // Sequential processing for mobile stability
-    for (const fileItem of fileQueue) {
+    for (const fileItem of queue) {
       setFiles(prev => prev.map(f => f.id === fileItem.id ? { ...f, status: 'compressing' as const } : f));
 
       try {
-        // Use current settings from ref
         const currentSettings = settingsRef.current;
         const quality = currentSettings.quality / 100;
         
@@ -112,7 +93,56 @@ export function useImageCompressor(isResizeOnly = false) {
       }
     }
     setIsCompressing(false);
-  }, []);
+  }, [createSafeUrl]);
+
+  // Bulk file handler for compression pages - uses current settings
+  const handleFiles = useCallback(async (newFileList: FileList | File[]) => {
+    const incomingFiles = Array.from(newFileList);
+    if (incomingFiles.length === 0) return;
+
+    const fileQueue: CompressedFileItem[] = incomingFiles.map(file => ({
+      id: Math.random().toString(36).substr(2, 9),
+      original: file,
+      compressed: null,
+      name: file.name,
+      status: 'pending' as const,
+      originalSize: file.size,
+      compressedSize: 0,
+      saved: '0',
+      previewUrl: null
+    }));
+    
+    setFiles(prev => [...prev, ...fileQueue]);
+    processQueue(fileQueue);
+  }, [processQueue]);
+
+  // Re-process bulk files when settings change (debounced)
+  useEffect(() => {
+    if (files.length === 0 || isResizeModeRef.current) return;
+
+    const timer = setTimeout(() => {
+      // Create a fresh queue from original files
+      const newQueue = files.map(f => ({
+        ...f,
+        status: 'pending' as const,
+        compressed: null,
+        previewUrl: null
+      }));
+      
+      // Cleanup old URLs
+      files.forEach(f => {
+        if (f.previewUrl) {
+          URL.revokeObjectURL(f.previewUrl);
+          activeUrls.current.delete(f.previewUrl);
+        }
+      });
+
+      setFiles(newQueue);
+      processQueue(newQueue);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [settings.quality, settings.format, settings.width, settings.height, settings.enableCompression]);
 
   // Single file handler for resize page
   const handleFileSelect = useCallback(async (file: File) => {
