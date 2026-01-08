@@ -14,6 +14,8 @@ interface ComparisonViewProps {
   isCompressing: boolean;
   onDownload: () => void;
   onReset: () => void;
+  showDownload?: boolean;
+  isResizeMode?: boolean;
 }
 
 export function ComparisonView({
@@ -23,7 +25,9 @@ export function ComparisonView({
   compressedSize,
   isCompressing,
   onDownload,
-  onReset
+  onReset,
+  showDownload = false,
+  isResizeMode = false
 }: ComparisonViewProps) {
   const [sliderPosition, setSliderPosition] = useState(50);
   const { toast } = useToast();
@@ -38,25 +42,25 @@ export function ComparisonView({
 
   const savings = originalSize > 0 ? ((originalSize - compressedSize) / originalSize) * 100 : 0;
   const isSavingsPositive = savings > 0;
+  const canDownload = showDownload || isSavingsPositive;
 
   const handleShare = async () => {
-    const text = `I just compressed an image and saved ${savings.toFixed(1)}% (${formatSize(originalSize - compressedSize)})! Try PixelPress - free, fast, and secure image compression 🚀`;
-
+    const text = isResizeMode 
+      ? `I just resized an image with PixelPress! Free, fast, and secure 🚀`
+      : `I just compressed an image and saved ${savings.toFixed(1)}% (${formatSize(originalSize - compressedSize)})! Try PixelPress - free, fast, and secure image compression 🚀`;
+    
     try {
       if (navigator.share) {
         // Try to fetch the blob from the compressedUrl
         const response = await fetch(compressedUrl);
         const blob = await response.blob();
+        
+        // Ensure we have a valid blob and type
         const mimeType = blob.type || "image/png";
         const extension = mimeType.split("/")[1] || "png";
+        const file = new File([blob], `compressed-image.${extension}`, { type: mimeType });
 
-        const file = new File(
-          [blob],
-          `pixelpress-compressed.${extension}`,
-          { type: mimeType }
-        );
-
-
+        // Check if file sharing is supported
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
           await navigator.share({
             title: 'PixelPress - Image Compression',
@@ -65,21 +69,36 @@ export function ComparisonView({
             url: window.location.origin
           });
         } else {
-          await navigator.share({
-            title: 'PixelPress - Image Compression',
-            text: text,
-            url: window.location.origin
-          });
+          // Fallback to clipboard if file sharing isn't supported (common on desktop)
+          throw new Error('File sharing not supported');
         }
       } else {
         throw new Error('Share API not available');
       }
     } catch (err) {
-      await navigator.clipboard.writeText(text);
-      toast({
-        title: "Copied to clipboard!",
-        description: "Share your compression savings with others"
-      });
+      console.error("Share failed:", err);
+      try {
+        await navigator.clipboard.writeText(text);
+        toast({
+          title: "Copied to clipboard!",
+          description: "Share your compression savings with others"
+        });
+      } catch (clipErr) {
+        console.error("Clipboard failed:", clipErr);
+        toast({
+          title: "Share failed",
+          description: "Could not share or copy to clipboard",
+          variant: "destructive"
+        });
+      }
+    }
+  };
+        toast({
+          title: "Share failed",
+          description: "Could not share or copy to clipboard",
+          variant: "destructive"
+        });
+      }
     }
   };
 
@@ -92,7 +111,7 @@ export function ComparisonView({
           <div className="text-lg font-bold font-display">{formatSize(originalSize)}</div>
         </div>
         <div className="bg-white/50 p-4 rounded-2xl border border-white/20 text-center relative overflow-hidden">
-          <div className="text-xs text-muted-foreground uppercase font-bold tracking-wider mb-1">Compressed</div>
+          <div className="text-xs text-muted-foreground uppercase font-bold tracking-wider mb-1">{isResizeMode ? "Resized" : "Compressed"}</div>
           <div className="text-lg font-bold font-display text-primary">{formatSize(compressedSize)}</div>
           {isCompressing && (
             <motion.div
@@ -103,24 +122,25 @@ export function ComparisonView({
             />
           )}
         </div>
-        <div className="bg-primary/5 p-4 rounded-2xl border border-primary/10 text-center col-span-2 md:col-span-1">
-          <div className="text-xs text-primary/80 uppercase font-bold tracking-wider mb-1">Saved</div>
-          <div className={`text-lg font-bold font-display ${isSavingsPositive ? 'text-green-600' : 'text-orange-500'}`}>
-            {isSavingsPositive ? `-${savings.toFixed(1)}%` : '+0%'}
+        {!isResizeMode && (
+          <div className="bg-primary/5 p-4 rounded-2xl border border-primary/10 text-center col-span-2 md:col-span-1">
+            <div className="text-xs text-primary/80 uppercase font-bold tracking-wider mb-1">Saved</div>
+            <div className={`text-lg font-bold font-display ${isSavingsPositive ? 'text-green-600' : 'text-orange-500'}`}>
+              {isSavingsPositive ? `-${savings.toFixed(1)}%` : '+0%'}
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Comparison Slider */}
       <div className="relative w-full aspect-[4/3] md:aspect-video rounded-3xl overflow-hidden shadow-2xl shadow-black/10 select-none group border border-border bg-white">
-        {/* Base Layer: Compressed Image */}
-        <img
-          src={compressedUrl}
-          alt="Compressed"
+        <img 
+          src={compressedUrl} 
+          alt={isResizeMode ? "Resized" : "Compressed"} 
           className="absolute inset-0 w-full h-full object-contain bg-white"
           data-testid="img-compressed"
         />
-        <Badge className="absolute top-4 right-4 z-10 bg-primary/90 hover:bg-primary pointer-events-none">Compressed</Badge>
+        <Badge className="absolute top-4 right-4 z-10 bg-primary/90 hover:bg-primary pointer-events-none">{isResizeMode ? "Resized" : "Compressed"}</Badge>
 
         {/* Overlay Layer: Original Image with Clip Mask */}
         <div
@@ -187,7 +207,7 @@ export function ComparisonView({
         <Button
           size="lg"
           onClick={onDownload}
-          disabled={isCompressing || !isSavingsPositive}
+          disabled={isCompressing || !canDownload}
           className={`
             flex-[2] rounded-xl h-14 text-base font-semibold shadow-lg shadow-primary/25
             transition-all hover:-translate-y-0.5 active:translate-y-0
@@ -197,7 +217,7 @@ export function ComparisonView({
           {isCompressing ? (
             <>
               <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-              Compressing...
+              {isResizeMode ? "Resizing..." : "Compressing..."}
             </>
           ) : (
             <>

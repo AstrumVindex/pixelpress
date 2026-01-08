@@ -1,0 +1,139 @@
+Compress PNG – FAQs
+1. What is PNG image compression?
+
+PNG compression reduces the file size of a PNG image while keeping transparency and visual quality intact.
+
+2. Will transparency be preserved after PNG compression?
+
+Yes. PixelPress preserves alpha transparency when compressing PNG images.
+
+3. Is PNG compression lossless?
+
+PixelPress uses lossless or near-lossless techniques for PNGs, so visual quality remains unchanged in most cases.
+
+4. Are PNG images uploaded to a server?
+
+No. PNG compression happens entirely in your browser. Images are never uploaded or stored.
+
+5. When should I use PNG instead of JPEG?
+
+PNG is best for images with text, logos, icons, or transparency, where sharp edges are important.
+
+6. Does PNG compression work on mobile?
+
+Yes. You can compress PNG images on mobile devices using modern browsers.
+
+7. Is there a file size limit for PNG compression?
+
+There is no fixed limit, but very large PNG files may take longer depending on your device.
+
+8. Can I use compressed PNGs for websites?
+
+Yes. Compressed PNGs are ideal for websites and help improve page load speed.
+
+📄 Compress JPEG – FAQs
+1. What happens when I compress a JPEG image?
+
+JPEG compression reduces file size by optimizing image data while keeping the image visually acceptable.
+
+2. Is JPEG compression lossy?
+
+Yes. JPEG compression is lossy, but PixelPress balances compression and quality to minimize visible loss.
+
+3. Will my JPEG look blurry after compression?
+
+In most cases, no. PixelPress maintains good visual quality even at smaller file sizes.
+
+4. Are original JPEG images stored anywhere?
+
+No. All JPEG processing is done locally in your browser for maximum privacy.
+
+5. When should I use JPEG compression?
+
+JPEG is best for photos, portraits, and complex images with many colors.
+
+6. Can I control the compression level?
+
+Depending on the tool settings, you may adjust quality to balance size and clarity.
+
+7. Is JPEG compression suitable for social media?
+
+Yes. Compressed JPEGs are perfect for faster uploads and sharing on social platforms.
+
+8. Does JPEG compression remove metadata?
+
+Some metadata may be removed to reduce file size and protect privacy.
+
+📄 Convert to WebP – FAQs
+1. What is WebP image format?
+
+WebP is a modern image format developed by Google that offers smaller file sizes with high quality.
+
+2. Why should I convert images to WebP?
+
+WebP images load faster and improve website performance without noticeable quality loss.
+
+3. Can I convert PNG and JPEG to WebP?
+
+Yes. PixelPress supports converting both PNG and JPEG images to WebP.
+
+4. Does WebP support transparency?
+
+Yes. WebP supports transparency similar to PNG.
+
+5. Are WebP images supported by browsers?
+
+Most modern browsers like Chrome, Edge, Firefox, and Safari support WebP.
+
+6. Will converting to WebP reduce quality?
+
+PixelPress optimizes WebP conversion to maintain visual quality while reducing size.
+
+7. Is WebP good for SEO?
+
+Yes. Faster-loading images improve Core Web Vitals, which can help SEO.
+
+8. Are images uploaded during WebP conversion?
+
+No. Conversion happens fully in your browser, ensuring privacy.
+
+📄 Resize Image – FAQs
+1. What does image resizing mean?
+
+Image resizing changes the dimensions (width and height) of an image without changing its format.
+
+2. Does resizing reduce image quality?
+
+Reducing dimensions may slightly affect quality, but PixelPress minimizes distortion.
+
+3. Can I resize images without compressing them?
+
+Yes. You can resize images independently without applying compression.
+
+4. Which formats can be resized?
+
+PixelPress supports resizing PNG, JPEG, and WebP images.
+
+5. Is aspect ratio maintained during resize?
+
+You can choose to lock or unlock aspect ratio depending on your needs.
+
+6. Are resized images processed online?
+
+No. Resizing is done locally in your browser for privacy and speed.
+
+7. Can I resize images for social media?
+
+Yes. Image resizing is ideal for preparing images for social media, websites, and profiles.
+
+8. Will resizing remove metadata?
+
+Some metadata may be removed during processing to reduce file size.
+
+✅ Pro Tip (Recommended for SEO)
+
+Add these FAQs below the main tool UI
+
+Use <h2>FAQs</h2> heading
+
+Later, you can add FAQ Schema (JSON-LD) for rich Google results

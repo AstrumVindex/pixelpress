@@ -1,0 +1,87 @@
+Since you already have separate pages and want to upgrade them for **Bulk Uploads** and **Mobile Performance** without spending too many Replit credits, you should give Replit a very specific, "code-heavy" prompt. This prevents the AI from "thinking" too much and wasting credits on generating layout ideas you don't need.
+
+The key to mobile performance with bulk images is **Sequential Processing**. If you try to compress 50 images at once on a phone, the browser will crash. You must tell Replit to process them one by one (or in small batches) using a "Queue" system.
+
+Here is the exact prompt to copy-paste into Replit.
+
+---
+
+### **Prompt for Replit AI**
+
+**Context:**
+I have an existing `ImageCompressor` component used across multiple pages (JPG, PNG, WebP). currently, it may handle files inefficiently or crash on mobile when many files are uploaded.
+
+**Task:**
+Refactor the file processing logic to support **Bulk Uploads** safely on mobile devices.
+
+1. **Mobile Optimization:** Use `browser-image-compression` with `useWebWorker: true` to keep the UI responsive.
+2. **Sequential Queue:** Do NOT process all files at once. Process images one by one (sequentially) to prevent mobile browser crashes/memory leaks.
+3. **UI Updates:** Update the input to allow `multiple` file selection. Show a list of files with a progress status.
+
+**Use this specific logic for the `handleFiles` function to save credits:**
+
+```javascript
+// REPLACE the existing handleFiles function with this Optimized Bulk Logic
+import imageCompression from 'browser-image-compression';
+
+const handleFiles = async (event) => {
+  const newFiles = Array.from(event.target.files);
+  if (newFiles.length === 0) return;
+
+  // 1. Add new files to state immediately as "Pending"
+  const fileQueue = newFiles.map(file => ({
+    original: file,
+    name: file.name,
+    id: Math.random().toString(36).substr(2, 9),
+    status: 'pending', // pending -> compressing -> done
+    originalSize: file.size,
+    compressedSize: 0,
+    saved: 0
+  }));
+  
+  setFiles(prev => [...prev, ...fileQueue]);
+
+  // 2. Define Compression Options (Mobile Friendly)
+  const options = {
+    maxSizeMB: 1,           // Good balance for mobile
+    maxWidthOrHeight: 1920, // Downscale 4K images to 1080p to save RAM
+    useWebWorker: true,     // Critical: Runs in background thread
+    initialQuality: 0.7,    // Start at 70% quality
+  };
+
+  // 3. Process Sequentially (One by One) to prevent crashing
+  for (const fileItem of fileQueue) {
+    // Update status to 'compressing'
+    setFiles(prev => prev.map(f => f.id === fileItem.id ? { ...f, status: 'compressing' } : f));
+
+    try {
+      const compressedBlob = await imageCompression(fileItem.original, options);
+      
+      // Update status to 'done'
+      setFiles(prev => prev.map(f => {
+        if (f.id === fileItem.id) {
+          return {
+            ...f,
+            status: 'done',
+            compressedBlob: compressedBlob,
+            compressedUrl: URL.createObjectURL(compressedBlob),
+            compressedSize: compressedBlob.size,
+            saved: ((f.originalSize - compressedBlob.size) / f.originalSize * 100).toFixed(1)
+          };
+        }
+        return f;
+      }));
+    } catch (error) {
+      console.error("Compression failed for", fileItem.name, error);
+      setFiles(prev => prev.map(f => f.id === fileItem.id ? { ...f, status: 'error' } : f));
+    }
+  }
+};
+
+```
+
+**Task 2: UI Updates**
+
+1. Update the `<input type="file">` tag to include the `multiple` attribute.
+2. Ensure the file list maps through `files` state and shows a specific loader for items with `status === 'compressing'`.
+3. Add a "Download All ZIP" button at the bottom using `jszip` if `files.length > 1`.

@@ -1,0 +1,194 @@
+You have a great eye for detail. **The answer is NO, not yet.**
+
+The previous prompt created the **engine** (`src/utils/converterEngine.js`) that is *capable* of doing high-quality image conversion, but we only "wired it up" to the JPG-to-PDF page.
+
+The other pages (PNG to JPG, JPG to PNG) are still using the "Fake" conversion (the `setTimeout` mock code we wrote in step 1).
+
+To make **ALL** pages produce high-quality, real files, you need to update the generic `FileConverter.jsx` component to use the engine we just built.
+
+Here is the prompt to give Replit to "activate" real high-quality conversion on all other pages.
+
+---
+
+### **Prompt for Replit AI**
+
+**Task:** Connect the generic `FileConverter` component to the high-quality conversion engine. Currently, `FileConverter.jsx` uses a fake timeout; I need it to actually convert images using the logic we created in `converterEngine.js`.
+
+**Requirements:**
+
+1. **Import Logic:** Import `convertImageFormat` from `../utils/converterEngine`.
+2. **Update Logic:** Replace the mock `setTimeout` in `handleConvert` with real conversion logic.
+3. **Handle Bulk:** Iterate through all uploaded files, convert them individually, and generate real Blob URLs for download.
+4. **Format Handling:** Ensure it passes the correct `outputFormat` (e.g., 'png', 'jpg') to the engine.
+
+**Code to Update:**
+Please replace the content of `src/components/FileConverter.jsx` with this updated version:
+
+```jsx
+import React, { useState, useEffect } from 'react';
+import { Upload, X, FileIcon, AlertCircle, Check, Download } from 'lucide-react';
+// IMPORT THE ENGINE
+import { convertImageFormat } from '../utils/converterEngine';
+
+// Configuration for MIME types
+const MIME_TYPES = {
+  png: 'image/png',
+  jpg: 'image/jpeg',
+  jpeg: 'image/jpeg',
+  webp: 'image/webp',
+  pdf: 'application/pdf',
+};
+
+const FileConverter = ({ inputFormat, outputFormat }) => {
+  const [files, setFiles] = useState([]);
+  const [error, setError] = useState('');
+  const [isDragging, setIsDragging] = useState(false);
+  const [isConverting, setIsConverting] = useState(false);
+  const [isDone, setIsDone] = useState(false);
+  
+  // Clean up old object URLs to prevent memory leaks
+  useEffect(() => {
+    return () => files.forEach(file => {
+      if (file.downloadUrl) URL.revokeObjectURL(file.downloadUrl);
+    });
+  }, [files]);
+
+  const validateAndAddFiles = (newFiles) => {
+    setError('');
+    const validFiles = [];
+    Array.from(newFiles).forEach(file => {
+      const fileExtension = file.name.split('.').pop().toLowerCase();
+      const expectedMime = MIME_TYPES[inputFormat.toLowerCase()];
+      if (fileExtension === inputFormat.toLowerCase() || (expectedMime && file.type === expectedMime)) {
+        // Store original file object
+        validFiles.push({ original: file, name: file.name, status: 'pending' });
+      }
+    });
+    if (validFiles.length > 0) setFiles(prev => [...prev, ...validFiles]);
+  };
+
+  const handleDragOver = (e) => { e.preventDefault(); setIsDragging(true); };
+  const handleDragLeave = (e) => { e.preventDefault(); setIsDragging(false); };
+  const handleDrop = (e) => {
+    e.preventDefault(); setIsDragging(false);
+    if (e.dataTransfer.files?.length > 0) validateAndAddFiles(e.dataTransfer.files);
+  };
+  const handleFileSelect = (e) => {
+    if (e.target.files?.length > 0) validateAndAddFiles(e.target.files);
+  };
+  const removeFile = (index) => setFiles(prev => prev.filter((_, i) => i !== index));
+
+  // --- REAL CONVERSION LOGIC ---
+  const handleConvert = async () => {
+    setIsConverting(true);
+    
+    try {
+      const updatedFiles = [...files];
+      
+      for (let i = 0; i < updatedFiles.length; i++) {
+        const fileObj = updatedFiles[i];
+        
+        // Skip if already converted
+        if (fileObj.status === 'done') continue;
+
+        // Use the Engine to convert
+        const blob = await convertImageFormat(fileObj.original, outputFormat);
+        
+        // Create Download URL
+        fileObj.downloadUrl = URL.createObjectURL(blob);
+        fileObj.status = 'done';
+        fileObj.convertedName = fileObj.name.replace(/\.[^/.]+$/, `.${outputFormat}`);
+        fileObj.size = blob.size;
+      }
+      
+      setFiles(updatedFiles);
+      setIsDone(true);
+    } catch (err) {
+      console.error(err);
+      setError('Conversion failed. Please try again.');
+    } finally {
+      setIsConverting(false);
+    }
+  };
+
+  return (
+    <div className="max-w-2xl mx-auto p-6 bg-white rounded-xl shadow-sm mt-10">
+      <div className="text-center mb-8">
+        <h1 className="text-4xl font-bold text-slate-900 mb-2">{inputFormat.toUpperCase()} to {outputFormat.toUpperCase()}</h1>
+        <p className="text-slate-500">High quality conversion.</p>
+      </div>
+
+      {/* Upload Area (Only show if not done or if want to add more) */}
+      <div 
+        className={`border-2 border-dashed rounded-3xl p-10 text-center transition-colors 
+          ${isDragging ? 'border-indigo-500 bg-indigo-50' : 'border-slate-200'}`}
+        onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop}
+      >
+        <div className="flex flex-col items-center justify-center space-y-4">
+          <div className="p-4 bg-white rounded-2xl shadow-sm"><Upload className="w-8 h-8 text-indigo-600" /></div>
+          <div><h3 className="text-xl font-bold text-slate-900">Upload {inputFormat.toUpperCase()} Files</h3></div>
+          <input type="file" id="file-upload" className="hidden" onChange={handleFileSelect} accept={`.${inputFormat}`} multiple />
+          <label htmlFor="file-upload" className="px-8 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-full cursor-pointer">Select Files</label>
+        </div>
+      </div>
+
+      {error && <div className="mt-4 p-3 bg-red-50 text-red-700 rounded-lg flex items-center gap-2 text-sm"><AlertCircle size={16} />{error}</div>}
+
+      {/* File List */}
+      {files.length > 0 && (
+        <div className="mt-8">
+          <h4 className="font-semibold text-slate-700 mb-3">Files ({files.length})</h4>
+          <div className="space-y-2">
+            {files.map((file, index) => (
+              <div key={index} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100">
+                <div className="flex items-center gap-3">
+                  {file.status === 'done' ? <Check className="text-green-500 w-5 h-5"/> : <FileIcon className="text-indigo-400 w-5 h-5"/>}
+                  <div className="text-sm">
+                    <p className="font-medium text-slate-700">{file.status === 'done' ? file.convertedName : file.name}</p>
+                    {file.status === 'done' && <span className="text-green-600 text-xs font-bold">Ready</span>}
+                  </div>
+                </div>
+                
+                {file.status === 'done' ? (
+                  <a 
+                    href={file.downloadUrl} 
+                    download={file.convertedName}
+                    className="flex items-center gap-2 px-3 py-1.5 bg-green-600 text-white text-xs font-bold rounded-md hover:bg-green-700"
+                  >
+                    <Download size={14}/> Download
+                  </a>
+                ) : (
+                  <button onClick={() => removeFile(index)} className="p-1 hover:bg-slate-200 rounded-full text-slate-400"><X size={16} /></button>
+                )}
+              </div>
+            ))}
+          </div>
+          
+          {!isDone && (
+            <button 
+              onClick={handleConvert} 
+              disabled={isConverting}
+              className="w-full mt-4 py-3 bg-slate-900 text-white rounded-lg font-medium hover:bg-slate-800 disabled:opacity-50"
+            >
+              {isConverting ? 'Converting High Quality...' : 'Convert All'}
+            </button>
+          )}
+          
+          {isDone && (
+             <button onClick={() => { setIsDone(false); setFiles([]); }} className="w-full mt-4 py-3 bg-slate-100 text-slate-700 rounded-lg font-medium hover:bg-slate-200">Convert More</button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default FileConverter;
+
+```
+
+### Why this improves quality:
+
+1. **Canvas Rendering:** It uses the HTML5 Canvas to redraw the image pixel-by-pixel.
+2. **Smoothing:** We set `ctx.imageSmoothingQuality = 'high'`, which uses better algorithms (like Lanczos or Bicubic) when resizing or re-encoding, rather than the browser's default draft mode.
+3. **Transparency Handling:** If you convert a transparent PNG to JPG using a simple method, the background often turns black. My engine explicitly fills the background with **White** before saving as JPG, which is the standard behavior users expect.

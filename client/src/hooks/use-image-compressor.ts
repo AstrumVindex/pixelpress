@@ -1,459 +1,272 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import imageCompression from "browser-image-compression";
 import { type CompressionSettings, PRESETS } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 
-// ============================================
-// SMART COMPRESSION UTILITIES
-// ============================================
-
-/**
- * Detects if an image is text-like (documents, screenshots, handwriting)
- * by analyzing pixel data for low color variance, sharp edges, and white areas.
- */
-function isTextLikeImage(imageData: ImageData): boolean {
-  const data = imageData.data;
-  const width = imageData.width;
-  const height = imageData.height;
-  
-  let colorVariance = 0;
-  let edgeCount = 0;
-  let whiteAreaRatio = 0;
-  let highContrastCount = 0;
-  let samples = 0;
-  
-  // Analyze color variance and edge sharpness
-  for (let i = 0; i < data.length; i += 4) {
-    const r = data[i];
-    const g = data[i + 1];
-    const b = data[i + 2];
-    
-    // Count white/near-white areas (common in documents)
-    if (r > 240 && g > 240 && b > 240) {
-      whiteAreaRatio++;
-    }
-    
-    samples++;
-    
-    // Sample variance with next pixel
-    if (i + 4 < data.length) {
-      const r2 = data[i + 4];
-      const g2 = data[i + 5];
-      const b2 = data[i + 6];
-      
-      const diff = Math.abs(r - r2) + Math.abs(g - g2) + Math.abs(b - b2);
-      colorVariance += diff;
-      
-      // High contrast = edge (common in text)
-      if (diff > 100) {
-        edgeCount++;
-        if (diff > 150) highContrastCount++;
-      }
-    }
-  }
-  
-  const avgVariance = colorVariance / Math.max(samples - 1, 1);
-  const whiteRatio = whiteAreaRatio / Math.max(samples, 1);
-  const edgeRatio = edgeCount / Math.max(samples - 1, 1);
-  const highContrastRatio = highContrastCount / Math.max(samples - 1, 1);
-  
-  // Text-like if: low variance AND (many white areas OR many sharp edges)
-  // Uses multiple thresholds for robust detection
-  const hasWhiteAreas = whiteRatio > 0.25;
-  const hasSharpEdges = edgeRatio > 0.12 && highContrastRatio > 0.08;
-  const hasLowVariance = avgVariance < 85;
-  
-  return hasLowVariance && (hasWhiteAreas || hasSharpEdges);
+interface CompressedFileItem {
+  id: string;
+  original: File;
+  compressed: Blob | null;
+  name: string;
+  status: 'pending' | 'compressing' | 'done' | 'error';
+  originalSize: number;
+  compressedSize: number;
+  saved: string;
+  previewUrl: string | null;
 }
 
-/**
- * Non-linear quality mapping: preserves clarity at low slider values.
- * Maps 0-100 to 0.7-0.95 quality range with aggressive curvature.
- * Prevents aggressive compression at moderate slider positions.
- */
-function mapQuality(sliderValue: number): number {
-  const MIN_QUALITY = 0.7;
-  const MAX_QUALITY = 0.95;
-  const normalized = sliderValue / 100;
+export function useImageCompressor(isResizeOnly = false) {
+  // All hooks must be called unconditionally at the top
+  const { toast } = useToast();
   
-  // Exponential curve: quality stays high until slider reaches ~70%
-  // This protects quality at conservative settings
-  const curvedNormalized = Math.pow(normalized, 0.7);
-  return MIN_QUALITY + (curvedNormalized * (MAX_QUALITY - MIN_QUALITY));
-}
-
-/**
- * Smart format selection based on image content and user preference.
- * RESPECTS user's explicit format choice - quality is protected via quality floors instead.
- */
-function selectFormat(
-  detectedTextLike: boolean,
-  userFormat: string,
-  hasTransparency: boolean
-): string {
-  // ALWAYS respect user's format selection
-  // Quality protection is handled via quality minimum floors, not format override
+  // Bulk mode state
+  const [files, setFiles] = useState<CompressedFileItem[]>([]);
   
-  // Only override for transparency if needed
-  if (hasTransparency && userFormat === "image/jpeg") {
-    return "image/webp"; // JPEG doesn't support transparency
-  }
-  
-  // Default to user selection
-  return userFormat;
-}
-
-/**
- * Force convert image to a specific format using canvas.
- * This ensures the output format is ALWAYS the selected format.
- */
-async function forceConvertFormat(
-  blob: Blob,
-  targetFormat: string,
-  quality: number
-): Promise<Blob> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    
-    reader.onload = (e) => {
-      const img = new Image();
-      img.onload = () => {
-        try {
-          const canvas = document.createElement("canvas");
-          
-          // Validate dimensions before setting (prevent invalid canvas size errors)
-          const width = Math.max(1, Math.floor(img.width) || 1);
-          const height = Math.max(1, Math.floor(img.height) || 1);
-          
-          if (width > 65536 || height > 65536) {
-            // Canvas size limit, use original blob
-            resolve(blob);
-            return;
-          }
-          
-          canvas.width = width;
-          canvas.height = height;
-          
-          const ctx = canvas.getContext("2d");
-          if (!ctx) {
-            resolve(blob);
-            return;
-          }
-          
-          ctx.drawImage(img, 0, 0);
-          
-          // Force conversion to target format
-          canvas.toBlob((convertedBlob) => {
-            if (convertedBlob) {
-              resolve(convertedBlob);
-            } else {
-              resolve(blob);
-            }
-          }, targetFormat, quality);
-        } catch (err) {
-          // If any error during conversion, use original blob
-          console.warn("Canvas conversion error:", err);
-          resolve(blob);
-        }
-      };
-      img.onerror = () => resolve(blob);
-      img.src = e.target?.result as string;
-    };
-    reader.onerror = () => resolve(blob);
-    reader.readAsDataURL(blob);
-  });
-}
-
-/**
- * Resize image with maximum quality scaling before compression.
- * Uses high-quality interpolation to preserve edge clarity.
- */
-async function resizeImage(
-  file: File,
-  maxWidth: number | undefined,
-  maxHeight: number | undefined,
-  maintainAspectRatio: boolean
-): Promise<Blob> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    
-    reader.onload = (e) => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement("canvas");
-        let width = img.width;
-        let height = img.height;
-        
-        // Calculate new dimensions
-        if (maxWidth || maxHeight) {
-          if (maxWidth && maxHeight && !maintainAspectRatio) {
-            width = maxWidth;
-            height = maxHeight;
-          } else if (maxWidth && (!maxHeight || maintainAspectRatio)) {
-            if (width > maxWidth) {
-              width = maxWidth;
-              if (maintainAspectRatio) {
-                height = Math.round((img.height * maxWidth) / img.width);
-              }
-            }
-          } else if (maxHeight) {
-            if (height > maxHeight) {
-              height = maxHeight;
-              if (maintainAspectRatio) {
-                width = Math.round((img.width * maxHeight) / img.height);
-              }
-            }
-          }
-        }
-        
-        canvas.width = width;
-        canvas.height = height;
-        
-        const ctx = canvas.getContext("2d");
-        if (!ctx) {
-          reject(new Error("Failed to get canvas context"));
-          return;
-        }
-        
-        // Maximum quality image smoothing to prevent aliasing and pixelation
-        ctx.imageSmoothingEnabled = true;
-        ctx.imageSmoothingQuality = "high";
-        
-        // Draw image with high-quality interpolation
-        ctx.drawImage(img, 0, 0, width, height);
-        
-        // Convert to PNG for lossless intermediate
-        canvas.toBlob((blob) => {
-          if (blob) resolve(blob);
-          else reject(new Error("Canvas to blob conversion failed"));
-        }, "image/png");
-      };
-      img.onerror = () => reject(new Error("Failed to load image"));
-      img.src = e.target?.result as string;
-    };
-    reader.onerror = () => reject(new Error("Failed to read file"));
-    reader.readAsDataURL(file);
-  });
-}
-
-
-/**
- * Analyze image to detect text and transparency.
- */
-async function analyzeImage(file: File): Promise<{ isText: boolean; hasTransparency: boolean }> {
-  return new Promise((resolve) => {
-    const reader = new FileReader();
-    
-    reader.onload = (e) => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement("canvas");
-        const ctx = canvas.getContext("2d");
-        
-        if (!ctx) {
-          resolve({ isText: false, hasTransparency: false });
-          return;
-        }
-        
-        canvas.width = Math.min(img.width, 200);
-        canvas.height = Math.min(img.height, 200);
-        
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        
-        const isText = isTextLikeImage(imageData);
-        
-        // Check for transparency by sampling alpha channel
-        const hasTransparency = Array.from(imageData.data)
-          .filter((_, i) => (i + 1) % 4 === 0)
-          .some((alpha) => alpha < 255);
-        
-        resolve({ isText, hasTransparency });
-      };
-      img.onerror = () => resolve({ isText: false, hasTransparency: false });
-      img.src = e.target?.result as string;
-    };
-    reader.onerror = () => resolve({ isText: false, hasTransparency: false });
-    reader.readAsDataURL(file);
-  });
-}
-
-export function useImageCompressor() {
+  // Single file mode state
   const [originalFile, setOriginalFile] = useState<File | null>(null);
-  const [compressedFile, setCompressedFile] = useState<File | null>(null);
-  const [isCompressing, setIsCompressing] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [settings, setSettings] = useState<CompressionSettings>(PRESETS[0].settings);
+  const [compressedFile, setCompressedFile] = useState<Blob | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [originalPreviewUrl, setOriginalPreviewUrl] = useState<string | null>(null);
   
-  const { toast } = useToast();
+  // Common state
+  const [isCompressing, setIsCompressing] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [progress, setProgress] = useState(0);
+  const [settings, setSettings] = useState<CompressionSettings>(() => ({
+    ...PRESETS[0].settings,
+    enableCompression: !isResizeOnly
+  }));
+  
+  // Ref to access current settings in async functions
+  const settingsRef = useRef(settings);
+  settingsRef.current = settings;
 
-  // Handle file selection
-  const handleFileSelect = useCallback((file: File) => {
-    // Validate image type
-    if (!file.type.startsWith("image/")) {
-      toast({
-        title: "Invalid file type",
-        description: "Please upload an image file (JPEG, PNG, WebP).",
-        variant: "destructive",
-      });
-      return;
+  // REF to track active URLs prevents "Network Error" bugs
+  const activeUrls = useRef(new Set<string>());
+
+  const createSafeUrl = useCallback((blob: Blob | File) => {
+    const url = URL.createObjectURL(blob);
+    activeUrls.current.add(url);
+    return url;
+  }, []);
+  
+  // Ref to track if we should re-process on settings change
+  const isResizeModeRef = useRef(isResizeOnly);
+  isResizeModeRef.current = isResizeOnly;
+
+  // Sequential processing for mobile stability
+  const processQueue = useCallback(async (queue: CompressedFileItem[]) => {
+    setIsCompressing(true);
+    for (const fileItem of queue) {
+      setFiles(prev => prev.map(f => f.id === fileItem.id ? { ...f, status: 'compressing' as const } : f));
+
+      try {
+        const currentSettings = settingsRef.current;
+        const quality = currentSettings.quality / 100;
+        
+        const options = {
+          maxSizeMB: currentSettings.enableCompression ? 1 : 10,
+          maxWidthOrHeight: currentSettings.width || currentSettings.height || 1920,
+          useWebWorker: true,
+          initialQuality: quality,
+          fileType: currentSettings.format as string,
+        };
+        
+        const compressedBlob = await imageCompression(fileItem.original, options);
+        const url = createSafeUrl(compressedBlob);
+        
+        setFiles(prev => prev.map(f => {
+          if (f.id === fileItem.id) {
+            return {
+              ...f,
+              status: 'done' as const,
+              compressed: compressedBlob,
+              previewUrl: url,
+              compressedSize: compressedBlob.size,
+              saved: ((f.originalSize - compressedBlob.size) / f.originalSize * 100).toFixed(1)
+            };
+          }
+          return f;
+        }));
+      } catch (error) {
+        console.error("Compression failed for", fileItem.name, error);
+        setFiles(prev => prev.map(f => f.id === fileItem.id ? { ...f, status: 'error' as const } : f));
+      }
+    }
+    setIsCompressing(false);
+  }, [createSafeUrl]);
+
+  // Bulk file handler for compression pages - uses current settings
+  const handleFiles = useCallback(async (newFileList: FileList | File[]) => {
+    const incomingFiles = Array.from(newFileList);
+    if (incomingFiles.length === 0) return;
+
+    setIsUploading(true);
+    setUploadProgress(0);
+
+    // Simulate upload progress
+    for (let i = 0; i <= 100; i += 10) {
+      setUploadProgress(i);
+      await new Promise(r => setTimeout(r, 20));
     }
 
-    setOriginalFile(file);
-    setOriginalPreviewUrl(URL.createObjectURL(file));
-    setCompressedFile(null);
-    setPreviewUrl(null);
-  }, [toast]);
+    setIsUploading(false);
 
-  // Compress image with smart logic
-  const compressImage = useCallback(async () => {
-    if (!originalFile) return;
+    const fileQueue: CompressedFileItem[] = incomingFiles.map(file => ({
+      id: Math.random().toString(36).substr(2, 9),
+      original: file,
+      compressed: null,
+      name: file.name,
+      status: 'pending' as const,
+      originalSize: file.size,
+      compressedSize: 0,
+      saved: '0',
+      previewUrl: null
+    }));
+    
+    setFiles(prev => [...prev, ...fileQueue]);
+    processQueue(fileQueue);
+  }, [processQueue]);
+
+  // Re-process bulk files when settings change (debounced)
+  useEffect(() => {
+    if (files.length === 0 || isResizeModeRef.current) return;
+
+    const timer = setTimeout(() => {
+      // Create a fresh queue from original files
+      const newQueue = files.map(f => ({
+        ...f,
+        status: 'pending' as const,
+        compressed: null,
+        previewUrl: null
+      }));
+      
+      // Cleanup old URLs
+      files.forEach(f => {
+        if (f.previewUrl) {
+          URL.revokeObjectURL(f.previewUrl);
+          activeUrls.current.delete(f.previewUrl);
+        }
+      });
+
+      setFiles(newQueue);
+      processQueue(newQueue);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [settings.quality, settings.format, settings.width, settings.height, settings.enableCompression]);
+
+  // Single file handler for resize page
+  const handleFileSelect = useCallback(async (file: File) => {
+    setOriginalFile(file);
+    setOriginalPreviewUrl(createSafeUrl(file));
+    setIsCompressing(true);
+    setProgress(0);
 
     try {
-      setIsCompressing(true);
-      setProgress(10);
-
-      // Analyze image for intelligent compression
-      const { isText, hasTransparency } = await analyzeImage(originalFile);
-      setProgress(20);
-
-      // Map quality with non-linear curve
-      let mappedQuality = mapQuality(settings.quality);
+      const currentSettings = settingsRef.current;
+      const quality = currentSettings.enableCompression ? currentSettings.quality / 100 : 1;
       
-      // CRITICAL: Enforce minimum quality thresholds
-      if (isText) {
-        // Text/documents: never below 0.80 (80%)
-        mappedQuality = Math.max(mappedQuality, 0.80);
-      } else {
-        // Photos: never below 0.70 (70%)
-        mappedQuality = Math.max(mappedQuality, 0.70);
-      }
-      
-      const finalQuality = mappedQuality;
-      
-      // Select best format - RESPECTS user choice
-      const bestFormat = selectFormat(isText, settings.format, hasTransparency);
-      
-      setProgress(30);
-
-      // Compress with user's chosen format
       const options = {
-        maxSizeMB: 50,
-        maxWidthOrHeight: settings.width || settings.height || undefined,
+        maxSizeMB: isResizeModeRef.current ? 10 : 1,
+        maxWidthOrHeight: currentSettings.width || currentSettings.height || 1920,
         useWebWorker: true,
-        initialQuality: finalQuality,
-        fileType: bestFormat,
-        onProgress: (p: number) => setProgress(Math.round(30 + (p * 0.6))), // 30-90%
+        initialQuality: quality,
+        fileType: currentSettings.format as string,
+        onProgress: (p: number) => setProgress(p)
       };
-
-      // If both dimensions specified and aspect ratio not maintained, 
-      // or if height is specified, we use our custom resize first
-      let fileToCompress: File | Blob = originalFile;
-      if ((settings.width && settings.height && !settings.maintainAspectRatio) || settings.height) {
-        fileToCompress = await resizeImage(
-          originalFile, 
-          settings.width, 
-          settings.height, 
-          settings.maintainAspectRatio
-        );
-      }
-
-      let compressed = await imageCompression(fileToCompress as File, options);
       
-      setProgress(85);
-
-      // FORCE format conversion if selected format differs from input
-      // browser-image-compression may not enforce format, so we use canvas conversion
-      const inputMimeType = originalFile.type;
-      if (bestFormat !== inputMimeType && bestFormat !== "image/webp") {
-        // For JPEG and PNG, force conversion via canvas
-        try {
-          const converted = await forceConvertFormat(compressed, bestFormat, finalQuality);
-          if (converted.size < originalFile.size) {
-            compressed = converted;
-          }
-        } catch (e) {
-          console.warn("Format conversion failed, continuing with compressed", e);
-        }
-      }
-
-      // Smart fallback: try WebP if compression is ineffective
-      if (compressed.size > originalFile.size * 0.85) {
-        const webpOptions = {
-          maxSizeMB: 50,
-          maxWidthOrHeight: settings.width || undefined,
-          useWebWorker: true,
-          initialQuality: Math.max(finalQuality, 0.82), // Maintain quality in fallback
-          fileType: "image/webp",
-        };
-        const webpCompressed = await imageCompression(originalFile, webpOptions);
-        
-        // Use WebP only if significantly better
-        if (webpCompressed.size < compressed.size * 0.92) {
-          compressed = webpCompressed;
-        }
-      }
-      
-      setCompressedFile(new File([compressed], originalFile.name, {
-        type: compressed.type,
-        lastModified: Date.now(),
-      } as any));
-      
-      if (previewUrl) URL.revokeObjectURL(previewUrl);
-      setPreviewUrl(URL.createObjectURL(compressed));
-      
-      setProgress(100);
+      const compressed = await imageCompression(file, options);
+      setCompressedFile(compressed);
+      setPreviewUrl(createSafeUrl(compressed));
     } catch (error) {
-      console.error("Compression error:", error);
+      console.error("Compression failed", error);
       toast({
-        title: "Compression failed",
-        description: "Something went wrong while processing the image.",
         variant: "destructive",
+        title: "Error",
+        description: "Failed to process image"
       });
     } finally {
       setIsCompressing(false);
     }
-  }, [originalFile, settings, previewUrl, toast]);
+  }, [toast]);
 
-  // Debounced auto-compression when settings change
+  // Re-process single file when settings change (for resize page)
   useEffect(() => {
-    if (!originalFile) return;
-    
-    const timer = setTimeout(() => {
-      compressImage();
-    }, 500); // 500ms debounce
+    if (originalFile && isResizeModeRef.current) {
+      handleFileSelect(originalFile);
+    }
+  }, [settings.width, settings.height, settings.enableCompression, settings.quality, settings.format]);
 
-    return () => clearTimeout(timer);
-  }, [settings, originalFile]); // Removed compressImage from deps to avoid loop if not memoized correctly upstream
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      if (previewUrl) URL.revokeObjectURL(previewUrl);
-      if (originalPreviewUrl) URL.revokeObjectURL(originalPreviewUrl);
-    };
+  const removeFile = useCallback((id: string) => {
+    setFiles(prev => {
+      const file = prev.find(f => f.id === id);
+      if (file?.previewUrl) {
+        URL.revokeObjectURL(file.previewUrl);
+        activeUrls.current.delete(file.previewUrl);
+      }
+      return prev.filter(f => f.id !== id);
+    });
   }, []);
 
   const reset = useCallback(() => {
+    // Clean up bulk files
+    setFiles(prev => {
+      prev.forEach(f => {
+        if (f.previewUrl) {
+          URL.revokeObjectURL(f.previewUrl);
+          activeUrls.current.delete(f.previewUrl);
+        }
+      });
+      return [];
+    });
+    
+    // Clean up single file
     setOriginalFile(null);
     setCompressedFile(null);
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+      activeUrls.current.delete(previewUrl);
+    }
+    if (originalPreviewUrl) {
+      URL.revokeObjectURL(originalPreviewUrl);
+      activeUrls.current.delete(originalPreviewUrl);
+    }
     setPreviewUrl(null);
     setOriginalPreviewUrl(null);
+    setIsCompressing(false);
     setProgress(0);
   }, [previewUrl, originalPreviewUrl]);
 
+  // Cleanup on unmount (User leaves page)
+  useEffect(() => {
+    return () => {
+      activeUrls.current.forEach(url => URL.revokeObjectURL(url));
+      activeUrls.current.clear();
+    };
+  }, []);
+
   return {
+    // Bulk mode
+    files,
+    handleFiles,
+    removeFile,
+    
+    // Single file mode (for resize page)
     originalFile,
     compressedFile,
-    isCompressing,
-    progress,
-    settings,
-    setSettings,
     previewUrl,
     originalPreviewUrl,
     handleFileSelect,
+    progress,
+    
+    // Common
+    isCompressing,
+    isUploading,
+    uploadProgress,
+    settings,
+    setSettings,
     reset
   };
 }

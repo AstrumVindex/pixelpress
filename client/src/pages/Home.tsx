@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { Helmet } from "react-helmet";
+import { useRef, useEffect, useState } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { UploadZone } from "@/components/UploadZone";
 import { Controls } from "@/components/Controls";
-import { ComparisonView } from "@/components/ComparisonView";
 import { useImageCompressor } from "@/hooks/use-image-compressor";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
@@ -12,47 +12,63 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Zap, Lock, Sliders, Monitor, Cpu, Lock as LockIcon, Server, Zap as ZapIcon } from "lucide-react";
+import { Zap, Lock, Sliders, Monitor, Cpu, Lock as LockIcon, Server, Zap as ZapIcon, Download, Trash2, Package, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import JSZip from 'jszip';
+import { saveAs } from 'file-saver';
 
 export default function Home() {
+  const resultsRef = useRef<HTMLDivElement>(null);
   const {
-    originalFile,
-    compressedFile,
+    files,
     isCompressing,
+    isUploading,
+    uploadProgress,
     settings,
     setSettings,
-    previewUrl,
-    originalPreviewUrl,
-    handleFileSelect,
+    handleFiles,
+    removeFile,
     reset
   } = useImageCompressor();
 
-  const handleDownload = () => {
-    if (compressedFile) {
-      // Determine file extension based on selected format
-      const formatMap: Record<string, string> = {
-        'image/jpeg': 'jpg',
-        'image/png': 'png',
-        'image/webp': 'webp'
-      };
-      const extension = formatMap[settings.format] || 'jpg';
-      
-      // Get base filename without extension
-      const baseFilename = originalFile?.name?.split('.')[0] || 'image';
-      
-      const url = URL.createObjectURL(compressedFile);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${baseFilename}-compressed.${extension}`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+  const [isZipping, setIsZipping] = useState(false);
+
+  // Auto-scroll to results when files are added
+  useEffect(() => {
+    if (files.length > 0 && !isUploading) {
+      const timer = setTimeout(() => {
+        resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [files.length, isUploading]);
+
+  const handleDownloadZip = async () => {
+    setIsZipping(true);
+    try {
+      const zip = new JSZip();
+      for (const fileItem of files) {
+        if (fileItem.status === 'done' && fileItem.compressed) {
+          const ext = settings.format.split('/')[1] || 'jpg';
+          zip.file(fileItem.name.replace(/\.[^/.]+$/, "") + `-compressed.${ext}`, fileItem.compressed);
+        }
+      }
+      const content = await zip.generateAsync({ type: "blob" });
+      saveAs(content, "pixelpress-compressed.zip");
+    } catch (err) {
+      console.error("ZIP creation failed", err);
+    } finally {
+      setIsZipping(false);
     }
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50/50 via-white to-indigo-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+      <Helmet>
+        <title>PixelPress - Free Online Image Compression Tool</title>
+        <meta name="description" content="Compress, resize and convert images online for free. PixelPress is a private, browser-based tool that works locally without uploading your photos to a server." />
+        <meta name="keywords" content="image compressor, online image tool, free image resize, png compressor, jpeg optimizer, webp converter" />
+      </Helmet>
       <Header />
       
       <main className="pt-24 pb-20 px-4 md:px-6">
@@ -80,52 +96,113 @@ export default function Home() {
               </p>
             </motion.div>
             
-            {!originalFile && (
-              <div className="mt-12">
-                <UploadZone onFileSelect={handleFileSelect} />
-              </div>
-            )}
+            <div className="mt-12 relative overflow-hidden rounded-3xl">
+              <UploadZone onFileSelect={handleFiles} />
+              
+              <AnimatePresence>
+                {isUploading && (
+                  <motion.div 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="absolute inset-0 bg-white/90 dark:bg-slate-900/90 z-10 flex flex-col items-center justify-center"
+                  >
+                    <div className="w-64 bg-slate-100 dark:bg-slate-800 rounded-full h-2 mb-4 overflow-hidden">
+                      <motion.div 
+                        className="bg-primary h-full transition-all duration-100 ease-out" 
+                        initial={{ width: 0 }}
+                        animate={{ width: `${uploadProgress}%` }}
+                      />
+                    </div>
+                    <p className="font-bold text-primary animate-pulse">Uploading {uploadProgress}%</p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           </section>
 
           {/* Main Tool Section */}
-          <AnimatePresence>
-            {originalFile && previewUrl && originalPreviewUrl && (
-              <motion.section 
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ duration: 0.4 }}
-                className="max-w-6xl mx-auto"
-                id="tool"
-              >
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-                  
-                  {/* Left Column: Controls */}
-                  <div className="lg:col-span-4 order-2 lg:order-1">
-                     <div className="bg-white/70 backdrop-blur-xl border border-white/40 shadow-xl shadow-indigo-500/5 rounded-3xl p-6 sticky top-24">
-                        <Controls settings={settings} onChange={setSettings} />
-                     </div>
+          {files.length > 0 && (
+            <div ref={resultsRef} className="grid grid-cols-1 lg:grid-cols-12 gap-8 max-w-6xl mx-auto scroll-mt-24">
+              <div className="lg:col-span-4 space-y-6">
+                <div className="bg-white/70 backdrop-blur-xl border border-white/40 shadow-xl rounded-3xl p-6 sticky top-24">
+                  <Controls settings={settings} onChange={setSettings} />
+                  <div className="mt-6 pt-6 border-t space-y-3">
+                    {files.some(f => f.status === 'done') && (
+                      <Button 
+                        onClick={handleDownloadZip} 
+                        disabled={isZipping}
+                        className="w-full rounded-xl h-12 font-bold bg-primary"
+                      >
+                        {isZipping ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Package className="w-4 h-4 mr-2" />}
+                        Download All as ZIP
+                      </Button>
+                    )}
+                    <Button variant="outline" onClick={reset} className="w-full rounded-xl h-12">
+                      Clear All
+                    </Button>
                   </div>
-
-                  {/* Right Column: Preview & Actions */}
-                  <div className="lg:col-span-8 order-1 lg:order-2">
-                    <div className="bg-white/70 backdrop-blur-xl border border-white/40 shadow-xl shadow-indigo-500/5 rounded-3xl p-6">
-                      <ComparisonView 
-                        originalUrl={originalPreviewUrl}
-                        compressedUrl={previewUrl}
-                        originalSize={originalFile.size}
-                        compressedSize={compressedFile?.size || originalFile.size}
-                        isCompressing={isCompressing}
-                        onDownload={handleDownload}
-                        onReset={reset}
-                      />
-                    </div>
-                  </div>
-
                 </div>
-              </motion.section>
-            )}
-          </AnimatePresence>
+              </div>
+
+              <div className="lg:col-span-8 space-y-4">
+                <AnimatePresence>
+                  {files.map((file) => (
+                    <motion.div
+                      key={file.id}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      className={`p-4 rounded-2xl border flex items-center justify-between transition-all ${
+                        file.status === 'done' ? 'bg-green-50/50 dark:bg-green-900/20 border-green-200 dark:border-green-800' : 'bg-white dark:bg-slate-900 border-border'
+                      }`}
+                    >
+                      <div className="flex items-center gap-4 min-w-0">
+                        <div className="w-12 h-12 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                          {file.previewUrl ? (
+                            <img src={file.previewUrl} className="w-full h-full object-cover" alt="" />
+                          ) : (
+                            <Zap className="w-6 h-6 text-slate-400" />
+                          )}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="font-bold text-sm truncate">{file.name}</p>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <span>{(file.originalSize / 1024).toFixed(1)} KB</span>
+                            {file.status === 'done' && (
+                              <>
+                                <span className="text-green-600 font-bold">→ {(file.compressedSize / 1024).toFixed(1)} KB</span>
+                                <span className="bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-400 px-1.5 py-0.5 rounded font-bold">-{file.saved}%</span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        {file.status === 'compressing' && (
+                          <div className="flex items-center gap-2 text-primary font-bold text-sm px-3">
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            <span className="hidden sm:inline">Optimizing...</span>
+                          </div>
+                        )}
+                        {file.status === 'done' && file.previewUrl && (
+                          <Button size="sm" variant="ghost" className="rounded-full text-green-600" asChild>
+                            <a href={file.previewUrl} download={`${file.name.split('.')[0]}-compressed.${settings.format.split('/')[1] || 'jpg'}`}>
+                              <Download className="w-4 h-4" />
+                            </a>
+                          </Button>
+                        )}
+                        <Button size="sm" variant="ghost" onClick={() => removeFile(file.id)} className="rounded-full text-slate-400 hover:text-destructive">
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </div>
+            </div>
+          )}
 
           {/* About & Benefits Section */}
           <section className="max-w-4xl mx-auto pt-16 prose prose-sm max-w-none">
@@ -154,16 +231,6 @@ export default function Home() {
                     No files are uploaded, stored, or shared with any servers.
                   </p>
                 </div>
-              </div>
-
-              <div className="pt-4 border-t border-border/30">
-                <h3 className="text-lg font-semibold text-foreground mb-3">How It Works</h3>
-                <ol className="space-y-2 text-sm text-muted-foreground list-decimal list-inside">
-                  <li>Upload or drag-and-drop your image (JPEG, PNG, or WebP)</li>
-                  <li>Adjust compression quality, resize dimensions, and choose your output format</li>
-                  <li>See a real-time before/after comparison with file size savings</li>
-                  <li>Download your optimized image instantly</li>
-                </ol>
               </div>
             </div>
           </section>
@@ -209,67 +276,32 @@ export default function Home() {
             </div>
           </section>
 
-          {/* How It Works Section */}
-          <section className="max-w-5xl mx-auto pt-16">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-display font-bold mb-4">How PixelPress Works</h2>
-              <p className="text-muted-foreground">Everything happens on your device—securely and instantly.</p>
-            </div>
-            
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {[
-                {
-                  icon: LockIcon,
-                  title: "Local Processing",
-                  desc: "All image compression runs directly in your browser using your device's processing power."
-                },
-                {
-                  icon: Cpu,
-                  title: "Smart Compression",
-                  desc: "Our algorithms detect text and details, applying optimal compression to preserve clarity."
-                },
-                {
-                  icon: Server,
-                  title: "No Server Uploads",
-                  desc: "Your images never leave your device. No files are uploaded, stored, or shared with servers."
-                },
-                {
-                  icon: ZapIcon,
-                  title: "Instant Results",
-                  desc: "Using modern web APIs, compression completes in seconds with no waiting."
-                }
-              ].map((item, i) => (
-                <div key={i} className="p-5 rounded-2xl bg-white/50 border border-border/50 text-center">
-                  <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary mx-auto mb-3">
-                    <item.icon className="w-5 h-5" />
-                  </div>
-                  <h3 className="font-semibold text-sm mb-2">{item.title}</h3>
-                  <p className="text-xs text-muted-foreground leading-relaxed">{item.desc}</p>
-                </div>
-              ))}
-            </div>
-          </section>
-
           {/* FAQ Section */}
-          <section id="faq" className="max-w-3xl mx-auto pt-16">
-            <h2 className="text-3xl font-display font-bold mb-8 text-center">Frequently Asked Questions</h2>
+          <section id="faq" className="max-w-3xl mx-auto pt-16 pb-12">
+            <h2 className="text-3xl font-display font-bold mb-8 text-center">FAQs</h2>
             <Accordion type="single" collapsible className="w-full space-y-4">
-              <AccordionItem value="item-1" className="border border-border/60 rounded-xl px-4 bg-white/50 data-[state=open]:bg-white data-[state=open]:shadow-md transition-all">
-                <AccordionTrigger className="font-medium hover:no-underline">Is my data safe?</AccordionTrigger>
+              <AccordionItem value="item-1" className="border border-border/60 rounded-xl px-4 bg-white/50 dark:bg-slate-800/50 data-[state=open]:bg-white dark:data-[state=open]:bg-slate-800 data-[state=open]:shadow-md transition-all">
+                <AccordionTrigger className="font-medium hover:no-underline text-left">1. What is PixelPress?</AccordionTrigger>
                 <AccordionContent className="text-muted-foreground">
-                  Absolutely. Unlike other tools that upload your images to a server, PixelPress runs entirely in your web browser. Your images never leave your computer.
+                  PixelPress is a free, browser-based image tool that helps you compress, convert, and resize images quickly without uploading them to a server.
                 </AccordionContent>
               </AccordionItem>
-              <AccordionItem value="item-2" className="border border-border/60 rounded-xl px-4 bg-white/50 data-[state=open]:bg-white data-[state=open]:shadow-md transition-all">
-                <AccordionTrigger className="font-medium hover:no-underline">Does it support bulk compression?</AccordionTrigger>
+              <AccordionItem value="item-2" className="border border-border/60 rounded-xl px-4 bg-white/50 dark:bg-slate-800/50 data-[state=open]:bg-white dark:data-[state=open]:bg-slate-800 data-[state=open]:shadow-md transition-all">
+                <AccordionTrigger className="font-medium hover:no-underline text-left">2. Is PixelPress really free to use?</AccordionTrigger>
                 <AccordionContent className="text-muted-foreground">
-                  Currently we focus on single-image optimization to provide the best possible visual comparison tools. Bulk processing is on our roadmap!
+                  Yes. PixelPress is completely free and does not require sign-up, subscriptions, or hidden payments.
                 </AccordionContent>
               </AccordionItem>
-              <AccordionItem value="item-3" className="border border-border/60 rounded-xl px-4 bg-white/50 data-[state=open]:bg-white data-[state=open]:shadow-md transition-all">
-                <AccordionTrigger className="font-medium hover:no-underline">Which formats are supported?</AccordionTrigger>
+              <AccordionItem value="item-3" className="border border-border/60 rounded-xl px-4 bg-white/50 dark:bg-slate-800/50 data-[state=open]:bg-white dark:data-[state=open]:bg-slate-800 data-[state=open]:shadow-md transition-all">
+                <AccordionTrigger className="font-medium hover:no-underline text-left">3. Are my images safe and private?</AccordionTrigger>
                 <AccordionContent className="text-muted-foreground">
-                  We support input and output for JPG, PNG, and WebP formats. We recommend WebP for the best balance of quality and file size on the web.
+                  Yes. All image processing happens locally in your browser. Your images are never uploaded, stored, or shared.
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="item-4" className="border border-border/60 rounded-xl px-4 bg-white/50 dark:bg-slate-800/50 data-[state=open]:bg-white dark:data-[state=open]:bg-slate-800 data-[state=open]:shadow-md transition-all">
+                <AccordionTrigger className="font-medium hover:no-underline text-left">4. What image formats does PixelPress support?</AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">
+                  PixelPress supports PNG, JPEG (JPG), and WebP formats for compression, conversion, and resizing.
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
@@ -277,7 +309,6 @@ export default function Home() {
 
         </div>
       </main>
-      <Footer />
     </div>
   );
 }

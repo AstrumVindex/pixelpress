@@ -4,20 +4,35 @@ import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
-import { Settings2, Maximize, Scissors } from "lucide-react";
+import { Settings2, Maximize, Scissors, AlertCircle, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { motion, AnimatePresence } from "framer-motion";
+import { useEffect } from "react";
 
 interface ResizeControlsProps {
   settings: CompressionSettings;
   onChange: (settings: CompressionSettings) => void;
   onOpenCrop?: () => void;
+  originalDimensions?: { width: number; height: number };
 }
 
-export function ResizeControls({ settings, onChange, onOpenCrop }: ResizeControlsProps) {
+export function ResizeControls({ settings, onChange, onOpenCrop, originalDimensions }: ResizeControlsProps) {
   const updateSetting = (newSettings: Partial<CompressionSettings>) => {
     onChange({ ...settings, ...newSettings });
   };
+
+  const isUpscaling = originalDimensions && (
+    (settings.width && settings.width > originalDimensions.width) ||
+    (settings.height && settings.height > originalDimensions.height)
+  );
+
+  // Auto-disable compression during upscaling
+  useEffect(() => {
+    if (isUpscaling && settings.enableCompression !== false) {
+      updateSetting({ enableCompression: false });
+    }
+  }, [isUpscaling, settings.enableCompression]);
 
   return (
     <div className="space-y-8">
@@ -48,7 +63,7 @@ export function ResizeControls({ settings, onChange, onOpenCrop }: ResizeControl
               <Input
                 id="width"
                 type="number"
-                placeholder="Auto"
+                placeholder={originalDimensions?.width.toString() || "Auto"}
                 value={settings.width || ""}
                 onChange={(e) => {
                   const val = e.target.value ? Number(e.target.value) : undefined;
@@ -62,7 +77,7 @@ export function ResizeControls({ settings, onChange, onOpenCrop }: ResizeControl
               <Input
                 id="height"
                 type="number"
-                placeholder="Auto"
+                placeholder={originalDimensions?.height.toString() || "Auto"}
                 value={settings.height || ""}
                 onChange={(e) => {
                   const val = e.target.value ? Number(e.target.value) : undefined;
@@ -83,53 +98,6 @@ export function ResizeControls({ settings, onChange, onOpenCrop }: ResizeControl
               onCheckedChange={(checked) => updateSetting({ maintainAspectRatio: checked })}
               className="scale-90"
             />
-          </div>
-        </div>
-      </div>
-
-      <Separator className="bg-border/50" />
-
-      {/* Section 2: Export Settings (Compression) */}
-      <div className="space-y-4">
-        <div className="flex items-center gap-2">
-          <Settings2 className="w-4 h-4 text-primary" />
-          <span className="font-bold text-sm">Export Settings</span>
-        </div>
-
-        <div className="space-y-4">
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <Label className="font-semibold">Quality</Label>
-              <span className="bg-primary text-white px-2 py-1 rounded-md text-xs font-bold font-mono">
-                {settings.quality}%
-              </span>
-            </div>
-            <Slider
-              value={[settings.quality]}
-              min={1}
-              max={100}
-              step={1}
-              onValueChange={([val]) => updateSetting({ quality: val })}
-              className="[&_.relative]:h-2"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label className="font-semibold text-xs">Save Image As</Label>
-            <Select 
-              value={settings.format} 
-              onValueChange={(val: CompressionFormat) => updateSetting({ format: val })}
-            >
-              <SelectTrigger className="w-full bg-background border-border shadow-sm h-10">
-                <SelectValue placeholder="Format" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="image/jpeg">JPEG (Original)</SelectItem>
-                <SelectItem value="image/png">PNG</SelectItem>
-                <SelectItem value="image/webp">WebP</SelectItem>
-                <SelectItem value="image/avif">AVIF</SelectItem>
-              </SelectContent>
-            </Select>
           </div>
         </div>
       </div>

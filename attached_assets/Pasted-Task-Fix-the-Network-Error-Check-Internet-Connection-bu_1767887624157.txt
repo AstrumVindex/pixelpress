@@ -1,0 +1,313 @@
+Task: Fix the "Network Error/Check Internet Connection" bug on the Download buttons.
+
+Problem: When I try to download individual files, the browser fails. This is happening because the useEffect cleanup function is revoking the Blob URLs too early (specifically, every time the files state updates). This kills the download links for existing files while the user is still looking at them.
+
+Solution: Refactor the useEffect cleanup logic in ImageCompressor.jsx.
+
+Do NOT revoke URLs when the files state updates.
+
+ONLY revoke URLs when the component unmounts (user leaves the page) or when a specific file is manually removed.
+
+Code to Update (src/components/ImageCompressor.jsx):
+
+Replace the existing useEffect cleanup block with this Ref-based solution to ensure safe memory management:
+
+JavaScript
+
+// 1. Add 'useRef' to imports
+import React, { useState, useEffect, useRef } from 'react';
+
+// ... inside the component ...
+
+const ImageCompressor = ({ targetFormat, seoKey }) => {
+  const [files, setFiles] = useState([]);
+  
+  // USE REF TO TRACK URLS (This persists without triggering re-renders)
+  const objectUrls = useRef(new Set());
+
+  // TRACK URLS WHEN CREATED
+  const createSafeUrl = (blob) => {
+    const url = URL.createObjectURL(blob);
+    objectUrls.current.add(url);
+    return url;
+  };
+
+  // CLEANUP ONLY ON UNMOUNT (User leaves page)
+  useEffect(() => {
+    return () => {
+      objectUrls.current.forEach(url => URL.revokeObjectURL(url));
+      objectUrls.current.clear();
+    };
+  }, []);
+
+  // ... Update handleFiles logic to use createSafeUrl ...
+  // Inside the processing loop, change:
+  // compressedUrl: URL.createObjectURL(compressedBlob)
+  // TO:
+  // compressedUrl: createSafeUrl(compressedBlob)
+
+  // ... Update removeFile logic ...
+  const removeFile = (index) => {
+    setFiles(prev => {
+      const fileToRemove = prev[index];
+      if (fileToRemove && fileToRemove.compressedUrl) {
+        URL.revokeObjectURL(fileToRemove.compressedUrl); // Revoke specifically this one
+        objectUrls.current.delete(fileToRemove.compressedUrl);
+      }
+      return prev.filter((_, i) => i !== index);
+    });
+  };
+
+  // ... rest of component ...
+Full Component Logic (Copy/Paste this into the file to be safe):
+
+JavaScript
+
+import React, { useState, useEffect, useRef } from 'react';
+import { Upload, X, Check, Download, Package, ArrowRight, Zap, AlertCircle } from 'lucide-react';
+import imageCompression from 'browser-image-compression';
+import JSZip from 'jszip';
+import { saveAs } from 'file-saver';
+import SeoContent from './SeoContent';
+import { seoData } from '../data/seoContent';
+
+const ImageCompressor = ({ targetFormat, seoKey }) => {
+  const [files, setFiles] = useState([]);
+  const [isCompressing, setIsCompressing] = useState(false);
+  const [isZipping, setIsZipping] = useState(false);
+  const [error, setError] = useState('');
+  
+  // REF to track active URLs prevents "Network Error" bugs
+  const activeUrls = useRef(new Set());
+
+  const MIME_TYPES = {
+    jpg: ['image/jpeg', 'image/jpg'],
+    png: ['image/png'],
+    webp: ['image/webp'],
+  };
+
+  // Cleanup URLs only when the user leaves the page entirely
+  useEffect(() => {
+    return () => {
+      activeUrls.current.forEach(url => URL.revokeObjectURL(url));
+      activeUrls.current.clear();
+    };
+  }, []);
+
+  const createUrl = (blob) => {
+    const url = URL.createObjectURL(blob);
+    activeUrls.current.add(url);
+    return url;
+  };
+
+  const validateFiles = (fileList) => {
+    setError('');
+    const validFiles = [];
+    const invalidFiles = [];
+    const allowedTypes = MIME_TYPES[targetFormat] || [];
+
+    Array.from(fileList).forEach(file => {
+      if (allowedTypes.includes(file.type)) {
+        validFiles.push(file);
+      } else {
+        invalidFiles.push(file.name);
+      }
+    });
+
+    if (invalidFiles.length > 0) {
+      setError(`Skipped ${invalidFiles.length} file(s). Only ${targetFormat.toUpperCase()} allowed.`);
+    }
+    return validFiles;
+  };
+
+  const handleFiles = async (event) => {
+    const newFiles = validateFiles(event.target.files);
+    if (newFiles.length === 0) return;
+
+    // Add to state immediately
+    const newQueue = newFiles.map(file => ({
+      original: file,
+      name: file.name,
+      id: Math.random().toString(36).substr(2, 9),
+      originalSize: file.size,
+      status: 'pending',
+    }));
+
+    setFiles(prev => [...prev, ...newQueue]);
+    setIsCompressing(true);
+
+    const options = {
+      maxSizeMB: 1,
+      maxWidthOrHeight: 1920,
+      useWebWorker: true,
+      fileType: MIME_TYPES[targetFormat][0],
+    };
+
+    // Process sequentially
+    for (const fileItem of newQueue) {
+      // Set status to compressing
+      setFiles(prev => prev.map(f => f.id === fileItem.id ? { ...f, status: 'compressing' } : f));
+
+      try {
+        const compressedBlob = await imageCompression(fileItem.original, options);
+        const safeUrl = createUrl(compressedBlob); // USE SAFE URL CREATOR
+
+        setFiles(prev => prev.map(f => {
+          if (f.id === fileItem.id) {
+            return {
+              ...f,
+              status: 'done',
+              compressedBlob: compressedBlob,
+              compressedUrl: safeUrl, // Bind safe URL
+              compressedSize: compressedBlob.size,
+              savedPercentage: Math.max(0, Math.round(((f.originalSize - compressedBlob.size) / f.originalSize) * 100))
+            };
+          }
+          return f;
+        }));
+      } catch (error) {
+        console.error("Error", error);
+        setFiles(prev => prev.map(f => f.id === fileItem.id ? { ...f, status: 'error' } : f));
+      }
+    }
+    setIsCompressing(false);
+  };
+
+  const removeFile = (index) => {
+    setFiles(prev => {
+      const file = prev[index];
+      // Revoke ONLY this file's URL
+      if (file && file.compressedUrl) {
+        URL.revokeObjectURL(file.compressedUrl);
+        activeUrls.current.delete(file.compressedUrl);
+      }
+      return prev.filter((_, i) => i !== index);
+    });
+  };
+
+  const formatSize = (bytes) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  const handleDownloadZip = async () => {
+    setIsZipping(true);
+    const zip = new JSZip();
+    files.forEach(f => {
+      if (f.status === 'done') zip.file(`min_${f.name}`, f.compressedBlob);
+    });
+    const content = await zip.generateAsync({ type: "blob" });
+    saveAs(content, `compressed_${targetFormat}_files.zip`);
+    setIsZipping(false);
+  };
+
+  return (
+    <div className="max-w-4xl mx-auto px-4 pb-24 sm:pb-12">
+      {/* HEADER */}
+      <div className="text-center py-8 sm:py-12">
+        <h1 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-3">
+          Compress {targetFormat.toUpperCase()} Images
+        </h1>
+        <p className="text-slate-500 text-lg">Reduce {targetFormat.toUpperCase()} file size without losing quality.</p>
+      </div>
+
+      <div className="flex flex-col lg:flex-row gap-8 items-start">
+        {/* UPLOAD BOX */}
+        <div className="w-full lg:w-1/3">
+          <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-6 sm:p-8 text-center sticky top-24">
+             <div className="w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center mx-auto mb-4 text-indigo-600">
+               <Zap size={32} fill="currentColor" />
+             </div>
+             <h3 className="font-bold text-slate-900 text-lg mb-2">Upload {targetFormat.toUpperCase()}</h3>
+             
+             <label className="block w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl cursor-pointer transition-transform active:scale-95 shadow-lg shadow-indigo-200">
+               Select {targetFormat.toUpperCase()}s
+               <input type="file" className="hidden" multiple accept={MIME_TYPES[targetFormat].join(',')} onChange={handleFiles} />
+             </label>
+             
+             {error && (
+               <div className="mt-4 p-3 bg-red-50 text-red-600 text-xs rounded-lg flex items-start gap-2 text-left">
+                 <AlertCircle size={14} className="flex-shrink-0 mt-0.5"/> {error}
+               </div>
+             )}
+          </div>
+        </div>
+
+        {/* RESULTS LIST */}
+        <div className="w-full lg:w-2/3">
+          {files.length === 0 ? (
+            <div className="border-2 border-dashed border-slate-200 rounded-3xl h-64 flex flex-col items-center justify-center text-slate-400 bg-slate-50/50">
+              <Upload className="mb-2 opacity-50" size={32} />
+              <p>No {targetFormat.toUpperCase()} files selected</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <div className="flex justify-between items-center mb-2 px-1">
+                <span className="font-bold text-slate-700">{files.length} Files</span>
+                <button onClick={() => setFiles([])} className="text-sm text-red-500 font-medium">Clear All</button>
+              </div>
+
+              {files.map((file, index) => (
+                <div key={file.id || index} className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex flex-col sm:flex-row sm:items-center gap-4">
+                  <div className="flex items-center gap-4 flex-1">
+                     <div className="w-12 h-12 bg-slate-100 rounded-lg overflow-hidden flex-shrink-0">
+                       {file.compressedUrl ? <img src={file.compressedUrl} className="w-full h-full object-cover" alt="" /> : <div className="w-full h-full animate-pulse bg-slate-200" />}
+                     </div>
+                     <div className="min-w-0">
+                       <p className="font-bold text-slate-800 truncate text-sm">{file.name}</p>
+                       <div className="flex items-center gap-2 text-xs mt-1">
+                         <span className="text-slate-400 line-through">{formatSize(file.originalSize)}</span>
+                         <ArrowRight size={10} className="text-slate-300" />
+                         <span className="text-green-600 font-bold">{file.status === 'done' ? formatSize(file.compressedSize) : '...'}</span>
+                       </div>
+                     </div>
+                  </div>
+                  <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto mt-2 sm:mt-0">
+                    {file.status === 'done' && <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-md">-{file.savedPercentage}%</span>}
+                    
+                    {file.status === 'done' ? (
+                      <a 
+                        href={file.compressedUrl} 
+                        download={`min_${file.name}`} 
+                        className="p-2 bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 text-slate-600 rounded-lg transition-colors"
+                      >
+                        <Download size={20} />
+                      </a>
+                    ) : (
+                      <div className="w-5 h-5 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+                    )}
+                    
+                    <button onClick={() => removeFile(index)} className="p-2 hover:bg-red-50 text-slate-400 hover:text-red-500 rounded-lg">
+                      <X size={20} />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {files.length > 0 && !isCompressing && (
+        <div className="fixed bottom-0 left-0 w-full bg-white border-t border-slate-200 p-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-40 lg:sticky lg:bottom-4 lg:rounded-2xl lg:border lg:shadow-xl lg:mb-8">
+           <div className="max-w-4xl mx-auto flex gap-4">
+             <button onClick={handleDownloadZip} disabled={isZipping} className="flex-1 py-3.5 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 flex items-center justify-center gap-2 active:scale-95 transition-transform">
+               {isZipping ? 'Zipping...' : <><Package size={20} /> Download All ZIP</>}
+             </button>
+           </div>
+        </div>
+      )}
+
+      {seoKey && seoData[seoKey] && (
+         <div className="mt-20 border-t pt-10">
+            <SeoContent data={seoData[seoKey]} />
+         </div>
+      )}
+    </div>
+  );
+};
+
+export default ImageCompressor;

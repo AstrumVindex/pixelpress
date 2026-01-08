@@ -1,0 +1,118 @@
+FIX PROMPT — Navigation Structure Regression
+Problem
+
+The current navigation was modified incorrectly:
+
+The “Compress Image” dropdown was removed
+
+“Format Converter” appears twice in the navigation
+
+This breaks usability, clarity, and SEO structure
+
+The navigation must clearly separate compression tools and format conversion tools.
+
+✅ Required Navigation Structure
+
+The top navigation must contain two distinct dropdown menus, each with its own purpose:
+
+1️⃣ Compress Image (Dropdown)
+
+This menu is for image compression use cases, not format conversion.
+
+Label: Compress Image
+
+Dropdown items (example):
+
+Compress PNG
+
+Compress JPEG
+
+Compress WebP
+
+Compress JPG
+
+Compress Image (All formats / main page)
+
+Behavior rules:
+
+These pages focus on reducing file size
+
+User can upload only supported image formats
+
+Output format may remain same or optimized (PNG → optimized PNG / WebP)
+
+These pages are SEO landing pages (important)
+
+2️⃣ Format Converter (Dropdown)
+
+This menu is only for converting file formats, not compression-first workflows.
+
+Label: Format Converter
+
+Dropdown items (example):
+
+PNG → JPG
+
+JPG → PNG
+
+JPG → WebP
+
+WebP → PNG
+
+Image Format Converter (All)
+
+Behavior rules:
+
+Primary goal = change format
+
+Compression is optional or secondary
+
+These pages target conversion keywords, not compression keywords
+
+3️⃣ Correct Final Navigation Example
+[ Compress Image ▼ ]   [ Format Converter ▼ ]   [ FAQ ]   [ Contact ]
+
+
+❌ Do NOT duplicate menu names
+❌ Do NOT merge compression & conversion into one dropdown
+❌ Do NOT remove compression-specific navigation
+
+4️⃣ SEO & UX Reason (Important)
+
+“Compress PNG”, “Compress JPEG” are high-intent search keywords
+
+“PNG to JPG” is a different user intent
+
+Mixing them hurts:
+
+SEO rankings
+
+User trust
+
+Navigation clarity
+
+Each dropdown must reflect user intent clearly.
+
+5️⃣ Implementation Notes
+
+Restore the Compress Image dropdown
+
+Remove the duplicated Format Converter
+
+Ensure links route to the correct existing pages
+
+Keep navigation responsive (desktop + mobile)
+
+Do not change page logic, only navigation structure
+
+✅ Acceptance Criteria
+
+Navigation shows exactly one Compress Image menu
+
+Navigation shows exactly one Format Converter menu
+
+Each dropdown has correct, relevant items
+
+No duplicate menu labels
+
+Clear separation of compression vs conversion

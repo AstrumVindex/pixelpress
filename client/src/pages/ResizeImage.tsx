@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet";
 import { useState, useEffect } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -7,8 +8,9 @@ import { ComparisonView } from "@/components/ComparisonView";
 import { CropDialog } from "@/components/CropDialog";
 import { useImageCompressor } from "@/hooks/use-image-compressor";
 import { motion, AnimatePresence } from "framer-motion";
-import { Zap, Cpu, Sliders, Monitor } from "lucide-react";
+import { Zap, Cpu, Sliders, Monitor, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useLocation } from "wouter";
 import {
   Accordion,
   AccordionContent,
@@ -17,26 +19,60 @@ import {
 } from "@/components/ui/accordion";
 
 export default function ResizeImage() {
-  const [cropDialogOpen, setCropDialogOpen] = useState(false);
-  useEffect(() => {
-    document.title = "Resize Images Online – Free Bulk Image Resizer | PixelPress";
-    const metaDesc = document.querySelector('meta[name="description"]');
-    if (metaDesc) {
-      metaDesc.setAttribute("content", "Resize images online for free. Compress and resize photos for web, social media, and documents. Maintain aspect ratio automatically.");
-    }
-  }, []);
-
+  const [, setLocation] = useLocation();
   const {
     originalFile,
     compressedFile,
     isCompressing,
+    progress,
     settings,
     setSettings,
     previewUrl,
     originalPreviewUrl,
     handleFileSelect,
     reset
-  } = useImageCompressor();
+  } = useImageCompressor(true); // Enable resize-only mode
+
+  const [cropDialogOpen, setCropDialogOpen] = useState(false);
+  const [originalDimensions, setOriginalDimensions] = useState<{ width: number; height: number }>();
+
+  const handleCompressRedirect = () => {
+    if (!compressedFile) return;
+
+    const type = compressedFile.type;
+    
+    // Pass the resized file via router state
+    const navigationOptions = { state: { file: compressedFile } };
+
+    if (type === "image/png") {
+      setLocation("/compress-png", navigationOptions);
+    } else if (type === "image/jpeg") {
+      setLocation("/compress-jpeg", navigationOptions);
+    } else if (type === "image/webp") {
+      setLocation("/compress-webp", navigationOptions);
+    }
+  };
+
+  useEffect(() => {
+    if (originalFile) {
+      const url = URL.createObjectURL(originalFile);
+      const img = new Image();
+      img.onload = () => {
+        setOriginalDimensions({ width: img.width, height: img.height });
+        URL.revokeObjectURL(url);
+      };
+      img.src = url;
+    } else {
+      setOriginalDimensions(undefined);
+    }
+  }, [originalFile]);
+
+  // On resize page, default compression to OFF when file is selected
+  useEffect(() => {
+    if (originalFile && settings.enableCompression === undefined) {
+      setSettings(prev => ({ ...prev, enableCompression: false }));
+    }
+  }, [originalFile, settings.enableCompression, setSettings]);
 
   const handleDownload = () => {
     if (compressedFile) {
@@ -59,6 +95,11 @@ export default function ResizeImage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50/50 via-white to-indigo-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+      <Helmet>
+        <title>Resize Images Online – Free Bulk Image Resizer | PixelPress</title>
+        <meta name="description" content="Resize images online for free. Compress and resize photos for web, social media, and documents. Maintain aspect ratio automatically." />
+        <meta name="keywords" content="resize image, online image resizer, change image dimensions, photo resizer, bulk image resizer" />
+      </Helmet>
       <Header />
       
       <main className="pt-24 pb-20 px-4 md:px-6">
@@ -84,7 +125,29 @@ export default function ResizeImage() {
             
             {!originalFile && (
               <div className="mt-8">
-                <UploadZone onFileSelect={handleFileSelect} />
+                <UploadZone onFileSelect={(files) => files[0] && handleFileSelect(files[0])} />
+              </div>
+            )}
+
+            {originalFile && !previewUrl && (
+              <div className="mt-12 max-w-2xl mx-auto">
+                <div className="bg-white/70 backdrop-blur-xl border border-white/40 shadow-xl rounded-3xl p-10 text-center space-y-6">
+                  <div className="relative w-20 h-20 mx-auto">
+                    <div className="absolute inset-0 border-4 border-primary/20 rounded-full" />
+                    <motion.div 
+                      className="absolute inset-0 border-4 border-primary rounded-full border-t-transparent"
+                      animate={{ rotate: 360 }}
+                      transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center font-bold text-primary">
+                      {progress}%
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="text-xl font-bold">Resizing your image...</h3>
+                    <p className="text-muted-foreground">This happens entirely in your browser.</p>
+                  </div>
+                </div>
               </div>
             )}
           </section>
@@ -106,6 +169,7 @@ export default function ResizeImage() {
                         settings={settings} 
                         onChange={setSettings} 
                         onOpenCrop={() => setCropDialogOpen(true)}
+                        originalDimensions={originalDimensions}
                       />
                     </div>
                   </div>
@@ -113,7 +177,7 @@ export default function ResizeImage() {
                   <CropDialog
                     open={cropDialogOpen}
                     onOpenChange={setCropDialogOpen}
-                    image={originalPreviewUrl}
+                    image={originalPreviewUrl!}
                     onCropComplete={(croppedBlob) => {
                       const file = new File([croppedBlob], originalFile?.name || "cropped.jpg", { type: "image/jpeg" });
                       handleFileSelect(file);
@@ -130,7 +194,29 @@ export default function ResizeImage() {
                         isCompressing={isCompressing}
                         onDownload={handleDownload}
                         onReset={reset}
+                        showDownload={true}
+                        isResizeMode={true}
                       />
+
+                      {compressedFile && (
+                        <motion.div 
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="mt-6 p-6 bg-primary/5 border border-primary/20 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4"
+                        >
+                          <div className="text-center sm:text-left">
+                            <h4 className="font-bold text-lg">Resize Complete!</h4>
+                            <p className="text-sm text-muted-foreground">Want to reduce the file size too?</p>
+                          </div>
+                          <Button 
+                            onClick={handleCompressRedirect}
+                            className="w-full sm:w-auto rounded-xl gap-2 h-12 px-6"
+                          >
+                            Compress This Image
+                            <ArrowRight className="w-4 h-4" />
+                          </Button>
+                        </motion.div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -189,31 +275,60 @@ export default function ResizeImage() {
 
           {/* FAQ Section */}
           <section className="max-w-3xl mx-auto pt-16">
-            <h2 className="text-3xl font-display font-bold mb-8 text-center">Frequently Asked Questions</h2>
+            <h2 className="text-3xl font-display font-bold mb-8 text-center">FAQs</h2>
             <Accordion type="single" collapsible className="w-full space-y-4">
-              <AccordionItem value="item-1" className="border border-border/60 rounded-xl px-4 bg-white/50 data-[state=open]:bg-white data-[state=open]:shadow-md transition-all">
-                <AccordionTrigger className="font-medium hover:no-underline">Is my data safe?</AccordionTrigger>
+              <AccordionItem value="item-1" className="border border-border/60 rounded-xl px-4 bg-white/50 dark:bg-slate-800/50 data-[state=open]:bg-white dark:data-[state=open]:bg-slate-800 data-[state=open]:shadow-md transition-all">
+                <AccordionTrigger className="font-medium hover:no-underline text-left">1. What does image resizing mean?</AccordionTrigger>
                 <AccordionContent className="text-muted-foreground">
-                  Absolutely. Unlike other tools that upload your images to a server, PixelPress runs entirely in your web browser. Your images never leave your computer.
+                  Image resizing changes the dimensions (width and height) of an image without changing its format.
                 </AccordionContent>
               </AccordionItem>
-              <AccordionItem value="item-2" className="border border-border/60 rounded-xl px-4 bg-white/50 data-[state=open]:bg-white data-[state=open]:shadow-md transition-all">
-                <AccordionTrigger className="font-medium hover:no-underline">Does it support bulk compression?</AccordionTrigger>
+              <AccordionItem value="item-2" className="border border-border/60 rounded-xl px-4 bg-white/50 dark:bg-slate-800/50 data-[state=open]:bg-white dark:data-[state=open]:bg-slate-800 data-[state=open]:shadow-md transition-all">
+                <AccordionTrigger className="font-medium hover:no-underline text-left">2. Does resizing reduce image quality?</AccordionTrigger>
                 <AccordionContent className="text-muted-foreground">
-                  Currently we focus on single-image optimization to provide the best possible visual comparison tools. Bulk processing is on our roadmap!
+                  Reducing dimensions may slightly affect quality, but PixelPress minimizes distortion.
                 </AccordionContent>
               </AccordionItem>
-              <AccordionItem value="item-3" className="border border-border/60 rounded-xl px-4 bg-white/50 data-[state=open]:bg-white data-[state=open]:shadow-md transition-all">
-                <AccordionTrigger className="font-medium hover:no-underline">Which formats are supported?</AccordionTrigger>
+              <AccordionItem value="item-3" className="border border-border/60 rounded-xl px-4 bg-white/50 dark:bg-slate-800/50 data-[state=open]:bg-white dark:data-[state=open]:bg-slate-800 data-[state=open]:shadow-md transition-all">
+                <AccordionTrigger className="font-medium hover:no-underline text-left">3. Can I resize images without compressing them?</AccordionTrigger>
                 <AccordionContent className="text-muted-foreground">
-                  We support input and output for JPG, PNG, and WebP formats. We recommend WebP for the best balance of quality and file size on the web.
+                  Yes. You can resize images independently without applying compression.
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="item-4" className="border border-border/60 rounded-xl px-4 bg-white/50 dark:bg-slate-800/50 data-[state=open]:bg-white dark:data-[state=open]:bg-slate-800 data-[state=open]:shadow-md transition-all">
+                <AccordionTrigger className="font-medium hover:no-underline text-left">4. Which formats can be resized?</AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">
+                  PixelPress supports resizing PNG, JPEG, and WebP images.
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="item-5" className="border border-border/60 rounded-xl px-4 bg-white/50 dark:bg-slate-800/50 data-[state=open]:bg-white dark:data-[state=open]:bg-slate-800 data-[state=open]:shadow-md transition-all">
+                <AccordionTrigger className="font-medium hover:no-underline text-left">5. Is aspect ratio maintained during resize?</AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">
+                  You can choose to lock or unlock aspect ratio depending on your needs.
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="item-6" className="border border-border/60 rounded-xl px-4 bg-white/50 dark:bg-slate-800/50 data-[state=open]:bg-white dark:data-[state=open]:bg-slate-800 data-[state=open]:shadow-md transition-all">
+                <AccordionTrigger className="font-medium hover:no-underline text-left">6. Are resized images processed online?</AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">
+                  No. Resizing is done locally in your browser for privacy and speed.
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="item-7" className="border border-border/60 rounded-xl px-4 bg-white/50 dark:bg-slate-800/50 data-[state=open]:bg-white dark:data-[state=open]:bg-slate-800 data-[state=open]:shadow-md transition-all">
+                <AccordionTrigger className="font-medium hover:no-underline text-left">7. Can I resize images for social media?</AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">
+                  Yes. Image resizing is ideal for preparing images for social media, websites, and profiles.
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="item-8" className="border border-border/60 rounded-xl px-4 bg-white/50 dark:bg-slate-800/50 data-[state=open]:bg-white dark:data-[state=open]:bg-slate-800 data-[state=open]:shadow-md transition-all">
+                <AccordionTrigger className="font-medium hover:no-underline text-left">8. Will resizing remove metadata?</AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">
+                  Some metadata may be removed during processing to reduce file size.
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
           </section>
         </div>
       </main>
-      <Footer />
     </div>
   );
 }

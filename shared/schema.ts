@@ -12,6 +12,7 @@ export const compressionSettingsSchema = z.object({
   height: z.number().optional(),
   maintainAspectRatio: z.boolean().default(true),
   stripMetadata: z.boolean().default(true),
+  enableCompression: z.boolean().default(true),
 });
 
 export const imageFileSchema = z.object({
@@ -33,21 +34,21 @@ export const PRESETS = [
   { 
     id: "safe", 
     name: "Safe (Recommended)", 
-    settings: { quality: 70, format: "image/jpeg", maintainAspectRatio: true, stripMetadata: true } 
+    settings: { quality: 70, format: "image/jpeg", maintainAspectRatio: true, stripMetadata: true, enableCompression: true } 
   },
   { 
     id: "balanced", 
     name: "Balanced", 
-    settings: { quality: 55, format: "image/webp", maintainAspectRatio: true, stripMetadata: true } 
+    settings: { quality: 55, format: "image/webp", maintainAspectRatio: true, stripMetadata: true, enableCompression: true } 
   },
   { 
     id: "aggressive", 
     name: "Aggressive", 
-    settings: { quality: 40, format: "image/webp", width: 1600, maintainAspectRatio: true, stripMetadata: true } 
+    settings: { quality: 40, format: "image/webp", width: 1600, maintainAspectRatio: true, stripMetadata: true, enableCompression: true } 
   },
   { 
     id: "maximum", 
     name: "Maximum", 
-    settings: { quality: 30, format: "image/webp", width: 1200, maintainAspectRatio: true, stripMetadata: true } 
+    settings: { quality: 30, format: "image/webp", width: 1200, maintainAspectRatio: true, stripMetadata: true, enableCompression: true } 
   }
 ] as const;

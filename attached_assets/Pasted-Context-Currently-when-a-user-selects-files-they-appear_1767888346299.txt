@@ -1,0 +1,94 @@
+Context: Currently, when a user selects files, they appear instantly without any "Loading/Uploading" feedback, and the user has to manually scroll down to see them.
+
+Task:
+
+Add Progress Bar: Create an uploadProgress state. When files are selected, simulate a 0% to 100% progress bar before starting the compression.
+
+Auto-Scroll: Automatically scroll the screen to the "Results Section" as soon as files are added.
+
+Ref Logic: Use useRef to target the results container for scrolling.
+
+Code to Implement (Update ImageCompressor.jsx):
+
+1. Add State & Refs:
+
+JavaScript
+
+// Add 'useRef' to imports
+import React, { useState, useEffect, useRef } from 'react';
+
+// ... inside component ...
+const [uploadProgress, setUploadProgress] = useState(0);
+const [isUploading, setIsUploading] = useState(false);
+const resultsRef = useRef(null); // Reference for auto-scroll
+2. Update handleFiles (Simulate Upload + Auto Scroll): Replace your existing handleFiles with this version that adds the visual delay and scroll.
+
+JavaScript
+
+const handleFiles = async (event) => {
+  const newFiles = validateFiles(event.target.files);
+  if (newFiles.length === 0) return;
+
+  setIsUploading(true);
+  setUploadProgress(0);
+
+  // 1. SIMULATE UPLOAD PROGRESS (Visual Feedback)
+  // This gives the user a feeling of "working" and smooths the transition
+  for (let i = 0; i <= 100; i += 10) {
+    setUploadProgress(i);
+    await new Promise(r => setTimeout(r, 20)); // Fast 200ms "fake" upload
+  }
+
+  setIsUploading(false);
+
+  // 2. PROCESS FILES (Existing Logic)
+  const newQueue = newFiles.map(file => ({
+    original: file,
+    name: file.name,
+    id: Math.random().toString(36).substr(2, 9),
+    originalSize: file.size,
+    status: 'pending',
+  }));
+
+  setFiles(prev => [...prev, ...newQueue]);
+  setIsCompressing(true);
+  
+  // 3. AUTO SCROLL TO RESULTS
+  // Wait a tiny bit for the UI to render the new list, then scroll
+  setTimeout(() => {
+    resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, 100);
+
+  // ... (Rest of your existing compression loop goes here) ...
+};
+3. Update UI (Show Progress Bar & Ref):
+
+Add the Progress Bar overlay inside the Upload Box, and attach the ref to the results container.
+
+JavaScript
+
+{/* --- INSIDE THE UPLOAD BOX DIV --- */}
+<div className="bg-white rounded-3xl ... relative overflow-hidden"> 
+  
+  {/* OVERLAY: Show this when "Uploading" */}
+  {isUploading && (
+    <div className="absolute inset-0 bg-white/90 z-10 flex flex-col items-center justify-center">
+      <div className="w-64 bg-slate-100 rounded-full h-2 mb-4 overflow-hidden">
+        <div 
+          className="bg-indigo-600 h-full transition-all duration-100 ease-out" 
+          style={{ width: `${uploadProgress}%` }}
+        />
+      </div>
+      <p className="font-bold text-indigo-600">Uploading {uploadProgress}%</p>
+    </div>
+  )}
+
+  {/* ... Your existing upload content (Icon, Button) ... */}
+</div>
+
+
+{/* --- RESULTS SECTION --- */}
+{/* Add the ref here so the code knows where to scroll */}
+<div ref={resultsRef} className="w-full lg:w-2/3 scroll-mt-24"> 
+  {/* ... Your results list ... */}
+</div>
