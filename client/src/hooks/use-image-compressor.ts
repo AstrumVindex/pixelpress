@@ -39,6 +39,15 @@ export function useImageCompressor(isResizeOnly = false) {
   // Ref to access current settings in async functions
   const settingsRef = useRef(settings);
   settingsRef.current = settings;
+
+  // REF to track active URLs prevents "Network Error" bugs
+  const activeUrls = useRef(new Set<string>());
+
+  const createSafeUrl = useCallback((blob: Blob | File) => {
+    const url = URL.createObjectURL(blob);
+    activeUrls.current.add(url);
+    return url;
+  }, []);
   
   // Ref to track if we should re-process on settings change
   const isResizeModeRef = useRef(isResizeOnly);
@@ -82,7 +91,7 @@ export function useImageCompressor(isResizeOnly = false) {
         };
         
         const compressedBlob = await imageCompression(fileItem.original, options);
-        const url = URL.createObjectURL(compressedBlob);
+        const url = createSafeUrl(compressedBlob);
         
         setFiles(prev => prev.map(f => {
           if (f.id === fileItem.id) {
@@ -108,7 +117,7 @@ export function useImageCompressor(isResizeOnly = false) {
   // Single file handler for resize page
   const handleFileSelect = useCallback(async (file: File) => {
     setOriginalFile(file);
-    setOriginalPreviewUrl(URL.createObjectURL(file));
+    setOriginalPreviewUrl(createSafeUrl(file));
     setIsCompressing(true);
     setProgress(0);
 
@@ -127,7 +136,7 @@ export function useImageCompressor(isResizeOnly = false) {
       
       const compressed = await imageCompression(file, options);
       setCompressedFile(compressed);
-      setPreviewUrl(URL.createObjectURL(compressed));
+      setPreviewUrl(createSafeUrl(compressed));
     } catch (error) {
       console.error("Compression failed", error);
       toast({
@@ -150,7 +159,10 @@ export function useImageCompressor(isResizeOnly = false) {
   const removeFile = useCallback((id: string) => {
     setFiles(prev => {
       const file = prev.find(f => f.id === id);
-      if (file?.previewUrl) URL.revokeObjectURL(file.previewUrl);
+      if (file?.previewUrl) {
+        URL.revokeObjectURL(file.previewUrl);
+        activeUrls.current.delete(file.previewUrl);
+      }
       return prev.filter(f => f.id !== id);
     });
   }, []);
@@ -159,7 +171,10 @@ export function useImageCompressor(isResizeOnly = false) {
     // Clean up bulk files
     setFiles(prev => {
       prev.forEach(f => {
-        if (f.previewUrl) URL.revokeObjectURL(f.previewUrl);
+        if (f.previewUrl) {
+          URL.revokeObjectURL(f.previewUrl);
+          activeUrls.current.delete(f.previewUrl);
+        }
       });
       return [];
     });
@@ -167,22 +182,27 @@ export function useImageCompressor(isResizeOnly = false) {
     // Clean up single file
     setOriginalFile(null);
     setCompressedFile(null);
-    if (previewUrl) URL.revokeObjectURL(previewUrl);
-    if (originalPreviewUrl) URL.revokeObjectURL(originalPreviewUrl);
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+      activeUrls.current.delete(previewUrl);
+    }
+    if (originalPreviewUrl) {
+      URL.revokeObjectURL(originalPreviewUrl);
+      activeUrls.current.delete(originalPreviewUrl);
+    }
     setPreviewUrl(null);
     setOriginalPreviewUrl(null);
     setIsCompressing(false);
     setProgress(0);
   }, [previewUrl, originalPreviewUrl]);
 
-  // Cleanup on unmount
+  // Cleanup on unmount (User leaves page)
   useEffect(() => {
     return () => {
-      files.forEach(f => {
-        if (f.previewUrl) URL.revokeObjectURL(f.previewUrl);
-      });
+      activeUrls.current.forEach(url => URL.revokeObjectURL(url));
+      activeUrls.current.clear();
     };
-  }, [files]);
+  }, []);
 
   return {
     // Bulk mode
