@@ -31,7 +31,7 @@ export function ComparisonView({
 }: ComparisonViewProps) {
   const [sliderPosition, setSliderPosition] = useState(50);
   const { toast } = useToast();
-  
+
   const formatSize = (bytes: number) => {
     if (bytes === 0) return "0 B";
     const k = 1024;
@@ -106,7 +106,7 @@ export function ComparisonView({
           <div className="text-xs text-muted-foreground uppercase font-bold tracking-wider mb-1">{isResizeMode ? "Resized" : "Compressed"}</div>
           <div className="text-lg font-bold font-display text-primary">{formatSize(compressedSize)}</div>
           {isCompressing && (
-            <motion.div 
+            <motion.div
               className="absolute inset-x-0 bottom-0 h-1 bg-primary"
               initial={{ x: "-100%" }}
               animate={{ x: "100%" }}
@@ -126,7 +126,6 @@ export function ComparisonView({
 
       {/* Comparison Slider */}
       <div className="relative w-full aspect-[4/3] md:aspect-video rounded-3xl overflow-hidden shadow-2xl shadow-black/10 select-none group border border-border bg-white">
-        {/* Base Layer: Compressed Image */}
         <img 
           src={compressedUrl} 
           alt={isResizeMode ? "Resized" : "Compressed"} 
@@ -136,15 +135,15 @@ export function ComparisonView({
         <Badge className="absolute top-4 right-4 z-10 bg-primary/90 hover:bg-primary pointer-events-none">{isResizeMode ? "Resized" : "Compressed"}</Badge>
 
         {/* Overlay Layer: Original Image with Clip Mask */}
-        <div 
+        <div
           className="absolute inset-0 overflow-hidden"
-          style={{ 
+          style={{
             clipPath: `inset(0 ${100 - sliderPosition}% 0 0)`
           }}
         >
-          <img 
-            src={originalUrl} 
-            alt="Original" 
+          <img
+            src={originalUrl}
+            alt="Original"
             className="absolute inset-0 w-full h-full object-contain bg-white"
             data-testid="img-original"
           />
@@ -152,7 +151,7 @@ export function ComparisonView({
         </div>
 
         {/* Slider Handle */}
-        <div 
+        <div
           className="absolute top-0 bottom-0 w-1 bg-white cursor-ew-resize z-20 shadow-[0_0_10px_rgba(0,0,0,0.3)]"
           style={{ left: `${sliderPosition}%`, transform: 'translateX(-50%)' }}
         >
@@ -178,16 +177,16 @@ export function ComparisonView({
 
       {/* Actions */}
       <div className="flex flex-col sm:flex-row gap-4 pt-4">
-        <Button 
-          variant="outline" 
-          size="lg" 
+        <Button
+          variant="outline"
+          size="lg"
           onClick={onReset}
           className="flex-1 rounded-xl h-14 text-base hover:bg-muted/50 border-2"
         >
           <X className="w-4 h-4 mr-2" />
           Cancel
         </Button>
-        <Button 
+        <Button
           variant="outline"
           size="lg"
           onClick={handleShare}
@@ -197,8 +196,8 @@ export function ComparisonView({
           <Share2 className="w-4 h-4 mr-2" />
           Share
         </Button>
-        <Button 
-          size="lg" 
+        <Button
+          size="lg"
           onClick={onDownload}
           disabled={isCompressing || !canDownload}
           className={`

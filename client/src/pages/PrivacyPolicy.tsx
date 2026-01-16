@@ -19,7 +19,7 @@ export default function PrivacyPolicy() {
 
           <article className="prose prose-sm md:prose-base dark:prose-invert max-w-none">
             <h1 className="text-4xl font-display font-bold mb-2">Privacy Policy</h1>
-            <p className="text-muted-foreground mb-8">Last updated: December 2024</p>
+            <p className="text-muted-foreground mb-8">Last updated: December 2025</p>
 
             <section className="space-y-6">
               <div>
