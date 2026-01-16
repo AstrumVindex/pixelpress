@@ -34,9 +34,9 @@ export const Header = memo(function Header() {
         </Link>
         
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-4 glass-panel px-6 py-2 rounded-full text-sm font-medium text-muted-foreground">
+        <nav className="hidden lg:flex items-center gap-4 glass-panel px-6 py-2 rounded-full text-sm font-medium text-muted-foreground">
           <DropdownMenu>
-            <DropdownMenuTrigger className="flex items-center gap-1 hover:text-foreground transition-colors outline-none">
+            <DropdownMenuTrigger className="flex items-center gap-1 hover:text-foreground transition-colors outline-none whitespace-nowrap">
               Compress Image <ChevronDown className="w-4 h-4" />
             </DropdownMenuTrigger>
             <DropdownMenuContent className="rounded-xl border-border bg-white/80 backdrop-blur-md dark:bg-slate-900/80">
@@ -56,7 +56,7 @@ export const Header = memo(function Header() {
           </DropdownMenu>
 
           <DropdownMenu>
-            <DropdownMenuTrigger className="flex items-center gap-1 hover:text-foreground transition-colors outline-none">
+            <DropdownMenuTrigger className="flex items-center gap-1 hover:text-foreground transition-colors outline-none whitespace-nowrap">
               Format Converter <ChevronDown className="w-4 h-4" />
             </DropdownMenuTrigger>
             <DropdownMenuContent className="rounded-xl border-border bg-white/80 backdrop-blur-md dark:bg-slate-900/80">
@@ -78,17 +78,17 @@ export const Header = memo(function Header() {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <Link href="/resize-image" className="hover:text-foreground transition-colors">Resize</Link>
+          <Link href="/resize-image" className="hover:text-foreground transition-colors whitespace-nowrap">Resize</Link>
           
-          <a href="#faq" className="hover:text-foreground transition-colors">FAQ</a>
-          <a href="mailto:pixelpresshelp4u@gmail.com" className="flex items-center gap-2 hover:text-foreground transition-colors">
+          <a href="#faq" className="hover:text-foreground transition-colors whitespace-nowrap">FAQ</a>
+          <a href="mailto:pixelpresshelp4u@gmail.com" className="flex items-center gap-2 hover:text-foreground transition-colors whitespace-nowrap">
             <Mail className="w-4 h-4" />
             Contact
           </a>
         </nav>
 
         {/* Mobile Navigation */}
-        <div className="md:hidden">
+        <div className="lg:hidden">
           <Sheet open={isOpen} onOpenChange={setIsOpen}>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className="glass-panel rounded-full w-10 h-10">
