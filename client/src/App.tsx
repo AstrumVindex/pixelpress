@@ -39,7 +39,7 @@ function Router() {
     }>
       <div className="flex flex-col min-h-screen">
         <Header />
-        <main className="flex-grow">
+        <main className="flex-grow pt-20 sm:pt-24 md:pt-28">
           <Switch>
             <Route path="/" component={Home} />
             <Route path="/compress-png" component={CompressPNG} />

@@ -20,21 +20,21 @@ export const Header = memo(function Header() {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 px-4 py-4 md:px-6">
+    <header className="fixed top-0 left-0 right-0 z-50 px-3 py-3 sm:px-4 sm:py-4 md:px-6">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         <Link href="/">
-          <div className="flex items-center gap-2 glass-panel px-4 py-2 rounded-full cursor-pointer hover:bg-white/10 transition-colors">
-            <div className="bg-primary/10 p-1.5 rounded-full text-primary">
-              <Zap className="w-5 h-5 fill-current" />
+          <div className="flex items-center gap-1 sm:gap-2 glass-panel px-3 sm:px-4 py-2 rounded-full cursor-pointer hover:bg-white/10 transition-colors">
+            <div className="bg-primary/10 p-1 sm:p-1.5 rounded-full text-primary">
+              <Zap className="w-4 sm:w-5 h-4 sm:h-5 fill-current" />
             </div>
-            <span className="font-display font-bold text-lg tracking-tight">
+            <span className="font-display font-bold text-base sm:text-lg tracking-tight hidden xs:inline">
               Pixel<span className="text-primary">Press</span>
             </span>
           </div>
         </Link>
         
         {/* Desktop Navigation */}
-        <nav className="hidden lg:flex items-center gap-4 glass-panel px-6 py-2 rounded-full text-sm font-medium text-muted-foreground">
+        <nav className="hidden 2xl:flex items-center gap-3 xl:gap-4 glass-panel px-4 xl:px-6 py-2 rounded-full text-xs xl:text-sm font-medium text-muted-foreground">
           <DropdownMenu>
             <DropdownMenuTrigger className="flex items-center gap-1 hover:text-foreground transition-colors outline-none whitespace-nowrap">
               Compress Image <ChevronDown className="w-4 h-4" />
@@ -88,11 +88,11 @@ export const Header = memo(function Header() {
         </nav>
 
         {/* Mobile Navigation */}
-        <div className="lg:hidden">
+        <div className="2xl:hidden">
           <Sheet open={isOpen} onOpenChange={setIsOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="glass-panel rounded-full w-10 h-10">
-                <Menu className="w-6 h-6" />
+              <Button variant="ghost" size="icon" className="glass-panel rounded-full w-9 h-9 sm:w-10 sm:h-10">
+                <Menu className="w-5 sm:w-6 h-5 sm:h-6" />
               </Button>
             </SheetTrigger>
             <SheetContent side="right" className="w-[300px] sm:w-[400px]">
