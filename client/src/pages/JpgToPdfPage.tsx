@@ -1,6 +1,7 @@
 import { JpgToPdfTool } from "@/components/JpgToPdfTool";
 import { motion } from "framer-motion";
 import { SeoContent } from "@/components/SeoContent";
+import { RelatedTools } from "@/components/RelatedTools";
 import { seoData } from "@/data/seoContent";
 
 export default function JpgToPdfPage() {
@@ -23,6 +24,8 @@ export default function JpgToPdfPage() {
         <JpgToPdfTool />
         
         <SeoContent data={seoData["jpg-to-pdf"] as any} />
+        
+        <RelatedTools currentTool="jpg-to-pdf" />
       </div>
     </main>
   );

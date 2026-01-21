@@ -6,6 +6,7 @@ import { UploadZone } from "@/components/UploadZone";
 import { ResizeControls } from "@/components/ResizeControls";
 import { ComparisonView } from "@/components/ComparisonView";
 import { CropDialog } from "@/components/CropDialog";
+import { RelatedTools } from "@/components/RelatedTools";
 import { useImageCompressor } from "@/hooks/use-image-compressor";
 import { motion, AnimatePresence } from "framer-motion";
 import { Zap, Cpu, Sliders, Monitor, ArrowRight } from "lucide-react";
@@ -329,6 +330,7 @@ export default function ResizeImage() {
           </section>
         </div>
       </main>
+      <RelatedTools currentTool="resize-image" />
     </div>
   );
 }

@@ -22,6 +22,29 @@ interface SeoContentProps {
 export const SeoContent = ({ data }: SeoContentProps) => {
   if (!data) return null;
 
+  // Helper to generate FAQ schema
+  const generateFaqSchema = () => {
+    const faqBlock = data.content.find(b => b.type === 'faq');
+    if (!faqBlock || !faqBlock.items) return null;
+    
+    const schema = {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": faqBlock.items.map(item => ({
+        "@type": "Question",
+        "name": item.q,
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": item.a
+        }
+      }))
+    };
+    
+    return JSON.stringify(schema);
+  };
+
+  const faqSchema = generateFaqSchema();
+
   return (
     <>
       <Helmet>
@@ -32,6 +55,16 @@ export const SeoContent = ({ data }: SeoContentProps) => {
         <meta property="og:type" content="website" />
         <meta property="og:title" content={data.title} />
         <meta property="og:description" content={data.description} />
+        <meta property="og:image" content="https://pixelpress.replit.app/social-preview.jpg" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={data.title} />
+        <meta name="twitter:description" content={data.description} />
+        <meta name="twitter:image" content="https://pixelpress.replit.app/social-preview.jpg" />
+        {faqSchema && (
+          <script type="application/ld+json">
+            {faqSchema}
+          </script>
+        )}
       </Helmet>
 
       <div className="max-w-4xl mx-auto mt-20 px-6 lg:px-8 pb-16">

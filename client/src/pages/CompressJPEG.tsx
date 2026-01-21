@@ -4,6 +4,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { UploadZone } from "@/components/UploadZone";
 import { Controls } from "@/components/Controls";
+import { RelatedTools } from "@/components/RelatedTools";
 import { useImageCompressor } from "@/hooks/use-image-compressor";
 import { motion, AnimatePresence } from "framer-motion";
 import { Zap, Cpu, Sliders, Monitor, Download, Trash2, Package, Loader2 } from "lucide-react";
@@ -226,6 +227,7 @@ export default function CompressJPEG() {
           </section>
         </div>
       </main>
+      <RelatedTools currentTool="compress-jpeg" />
       <Footer />
     </div>
   );

@@ -4,10 +4,11 @@ import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { convertImageFormat, convertPdfToImages } from '@/utils/converterEngine';
-import JSZip from 'jszip';
-import { saveAs } from 'file-saver';
+import { RelatedTools } from './RelatedTools';
 import { SeoContent } from './SeoContent';
 import { seoData } from '../data/seoContent';
+import JSZip from 'jszip';
+import { saveAs } from 'file-saver';
 
 const MIME_TYPES: Record<string, string> = {
   png: 'image/png',
@@ -366,6 +367,10 @@ export function FileConverter({ inputFormat, outputFormat, seoKey }: FileConvert
         <div className="mt-12">
           <SeoContent data={seoData[seoKey as keyof typeof seoData] as any} />
         </div>
+      )}
+
+      {seoKey && isDone && (
+        <RelatedTools currentTool={seoKey} />
       )}
     </div>
   );
