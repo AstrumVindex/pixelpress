@@ -12,6 +12,8 @@ const tools = [
   { title: "JPG to PDF", link: "/jpg-to-pdf", icon: FileText, color: "text-purple-500", bg: "bg-purple-50 dark:bg-purple-900/20" },
   { title: "PNG to WebP", link: "/png-to-webp", icon: FileImage, color: "text-indigo-500", bg: "bg-indigo-50 dark:bg-indigo-900/20" },
   { title: "WebP to PNG", link: "/webp-to-png", icon: FileImage, color: "text-teal-500", bg: "bg-teal-50 dark:bg-teal-900/20" },
+  { title: "WebP to JPG", link: "/webp-to-jpg", icon: FileImage, color: "text-orange-500", bg: "bg-orange-50 dark:bg-orange-900/20" },
+  { title: "JFIF to JPG", link: "/jfif-to-jpg", icon: FileImage, color: "text-pink-500", bg: "bg-pink-50 dark:bg-pink-900/20" },
 ];
 
 export default function AllConverters() {

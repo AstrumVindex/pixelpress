@@ -13,6 +13,7 @@ const MIME_TYPES: Record<string, string> = {
   png: 'image/png',
   jpg: 'image/jpeg',
   jpeg: 'image/jpeg',
+  jfif: 'image/jpeg',
   webp: 'image/webp',
   pdf: 'application/pdf',
 };
