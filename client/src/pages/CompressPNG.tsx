@@ -1,7 +1,6 @@
 import { Helmet } from "react-helmet";
 import { useState } from "react";
 import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
 import { UploadZone } from "@/components/UploadZone";
 import { Controls } from "@/components/Controls";
 import { RelatedTools } from "@/components/RelatedTools";
@@ -196,6 +195,8 @@ export default function CompressPNG() {
             </div>
           </section>
 
+          <RelatedTools currentTool="compress-png" />
+
           <section className="max-w-3xl mx-auto pt-16">
             <h2 className="text-3xl font-display font-bold mb-8 text-center">FAQs</h2>
             <Accordion type="single" collapsible className="w-full space-y-4">
@@ -227,8 +228,6 @@ export default function CompressPNG() {
           </section>
         </div>
       </main>
-      <RelatedTools currentTool="compress-png" />
-      <Footer />
     </div>
   );
 }

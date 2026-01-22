@@ -1,7 +1,6 @@
 import { Helmet } from "react-helmet";
 import { useState, useEffect } from "react";
 import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
 import { UploadZone } from "@/components/UploadZone";
 import { ResizeControls } from "@/components/ResizeControls";
 import { ComparisonView } from "@/components/ComparisonView";
@@ -274,6 +273,8 @@ export default function ResizeImage() {
             </div>
           </section>
 
+          <RelatedTools currentTool="resize-image" />
+
           {/* FAQ Section */}
           <section className="max-w-3xl mx-auto pt-16">
             <h2 className="text-3xl font-display font-bold mb-8 text-center">FAQs</h2>
@@ -330,7 +331,6 @@ export default function ResizeImage() {
           </section>
         </div>
       </main>
-      <RelatedTools currentTool="resize-image" />
     </div>
   );
 }

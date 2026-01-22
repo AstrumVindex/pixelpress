@@ -102,6 +102,20 @@ export function useImageCompressor(isResizeOnly = false) {
     const incomingFiles = Array.from(newFileList);
     if (incomingFiles.length === 0) return;
 
+    // Check 50MB total file limit for compression pages
+    const MAX_TOTAL_SIZE = 50 * 1024 * 1024; // 50 MB total
+    const totalSize = incomingFiles.reduce((sum, file) => sum + file.size, 0);
+    
+    if (totalSize > MAX_TOTAL_SIZE) {
+      const totalSizeMB = (totalSize / (1024 * 1024)).toFixed(2);
+      toast({
+        variant: "destructive",
+        title: "Total file size exceeds limit",
+        description: `Total size is ${totalSizeMB} MB. Maximum allowed is 50 MB.`
+      });
+      return;
+    }
+
     setIsUploading(true);
     setUploadProgress(0);
 

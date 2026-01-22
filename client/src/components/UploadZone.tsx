@@ -90,6 +90,9 @@ export const UploadZone = memo(function UploadZone({
                 <span className="text-xs uppercase tracking-wider font-medium opacity-60 mt-2 block">
                   Supports {allowedFormats} - Multiple files allowed
                 </span>
+                <span className="text-xs font-semibold text-primary opacity-80 mt-1 block">
+                  Max 50 MB total
+                </span>
               </p>
             </div>
 
