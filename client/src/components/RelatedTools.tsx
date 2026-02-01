@@ -125,10 +125,10 @@ export const RelatedTools = ({ currentTool, limit = 4 }: RelatedToolsProps) => {
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
         {relatedTools.map((tool) => (
           <Link key={tool.id} href={tool.href}>
-            <a className="group h-full">
+            <a className="group h-full" aria-label={`Open tool: ${tool.name}`} title={`Open ${tool.name}`}>
               <div className="h-full p-6 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-primary/50 dark:hover:border-primary/50 transition-all hover:shadow-lg hover:-translate-y-1">
                 <div className="flex items-start justify-between mb-3">
-                  <span className="text-4xl">{tool.icon}</span>
+                  <span className="text-4xl" role="img" aria-label={`${tool.name} icon`} title={`${tool.name} icon`}>{tool.icon}</span>
                   <ArrowRight className="w-5 h-5 text-primary opacity-0 group-hover:opacity-100 transition-all group-hover:translate-x-1" />
                 </div>
                 
@@ -144,6 +144,8 @@ export const RelatedTools = ({ currentTool, limit = 4 }: RelatedToolsProps) => {
                   variant="ghost" 
                   size="sm" 
                   className="w-full mt-2 group-hover:bg-primary/10"
+                  aria-label={`Try ${tool.name} now`}
+                  title={`Try ${tool.name} now`}
                 >
                   Try Now
                   <ArrowRight className="w-4 h-4 ml-2" />
@@ -156,8 +158,8 @@ export const RelatedTools = ({ currentTool, limit = 4 }: RelatedToolsProps) => {
 
       <div className="text-center mt-12">
         <Link href="/all-converters">
-          <a>
-            <Button variant="outline" size="lg">
+          <a aria-label="View all converters and tools" title="View all converters and tools">
+            <Button variant="outline" size="lg" title="View all PixelPress tools">
               View All Tools
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
