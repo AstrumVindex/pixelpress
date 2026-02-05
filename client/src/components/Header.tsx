@@ -34,7 +34,7 @@ export const Header = memo(function Header() {
         </Link>
         
         {/* Desktop Navigation */}
-        <nav className="hidden 2xl:flex items-center gap-3 xl:gap-4 glass-panel px-4 xl:px-6 py-2 rounded-full text-xs xl:text-sm font-medium text-muted-foreground">
+        <nav className="hidden lg:flex items-center gap-3 xl:gap-4 glass-panel px-4 xl:px-6 py-2 rounded-full text-xs xl:text-sm font-medium text-muted-foreground">
           <DropdownMenu>
             <DropdownMenuTrigger className="flex items-center gap-1 hover:text-foreground transition-colors outline-none whitespace-nowrap">
               Compress Image <ChevronDown className="w-4 h-4" />
@@ -88,7 +88,7 @@ export const Header = memo(function Header() {
         </nav>
 
         {/* Mobile Navigation */}
-        <div className="2xl:hidden">
+        <div className="lg:hidden">
           <Sheet open={isOpen} onOpenChange={setIsOpen}>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className="glass-panel rounded-full w-9 h-9 sm:w-10 sm:h-10">
