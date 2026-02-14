@@ -1,8 +1,5 @@
 import { jsPDF } from "jspdf";
-import * as pdfjsLib from "pdfjs-dist";
-
-// Set the worker source for PDF.js
-pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.js`;
+import { pdfjsLib } from "@/lib/pdfWorker";
 
 /**
  * Helper: Load an image file
@@ -52,7 +49,7 @@ export const convertPdfToImages = async (file: File, outputFormat: string) => {
     const renderContext = {
       canvasContext: context,
       viewport: viewport,
-      // Enable text enhancement flags if supported by version
+      canvas: canvas,
       background: 'rgba(255, 255, 255, 1)' 
     };
 

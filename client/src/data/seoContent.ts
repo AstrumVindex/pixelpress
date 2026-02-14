@@ -113,5 +113,62 @@ export const seoData = {
         text: "Sharing a single page from a PDF on social media (like Instagram or Twitter) is impossible. Converting your PDF to JPG allows you to share your documents as images easily."
       }
     ]
+  },
+  "jfif-to-jpg": {
+    title: "JFIF to JPG Converter - Free & Instant | PixelPress",
+    description: "Convert JFIF images to JPG format for free. Fast, secure, and 100% private - all processing happens in your browser. No registration required.",
+    keywords: "jfif to jpg, convert jfif to jpg, jfif to jpeg, change jfif to jpg online",
+    heading: "Convert JFIF to JPG Instantly",
+    content: [
+      {
+        title: "What is JFIF?",
+        type: "text",
+        text: "JFIF (JPEG File Interchange Format) is a variant of the JPEG image format. Some devices and Windows systems save photos as .jfif, but many websites and apps don't support it properly. That's why JPG is the safer and more universal format."
+      },
+      {
+        title: "Why convert JFIF to JPG?",
+        type: "features",
+        items: [
+          "**Compatibility:** Your image won't upload on a website or social media doesn't accept .jfif.",
+          "**Design Friendly:** Design tools show errors with JFIF files.",
+          "**Universal:** JPG works everywhere — JFIF doesn't."
+        ]
+      },
+      {
+        title: "Why use PixelPress?",
+        type: "features",
+        items: [
+          "**⚡ Instant conversion:** No waiting. Files convert in real-time.",
+          "**🔒 100% private:** Your images never leave your device.",
+          "**🧠 High quality:** No visible quality loss.",
+          "**🌍 Works on all devices:** Windows, Mac, Linux, Android, iOS.",
+          "**📂 Batch support:** Convert multiple JFIF files at once."
+        ]
+      },
+      {
+        title: "How it works",
+        type: "steps",
+        items: [
+          "Select your JFIF file",
+          "PixelPress converts it to JPG",
+          "Download your new image"
+        ]
+      },
+      {
+        title: "Privacy First",
+        type: "text",
+        text: "PixelPress uses client-side processing. Your files are not uploaded to any server. Nothing is stored. Nothing is tracked."
+      },
+      {
+        title: "When PixelPress is perfect for you",
+        type: "features",
+        items: [
+          "Don't want to install software",
+          "Care about privacy",
+          "Need fast conversion",
+          "Work with many images"
+        ]
+      }
+    ]
   }
 };

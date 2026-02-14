@@ -247,7 +247,7 @@ export function FileConverter({ inputFormat, outputFormat, seoKey }: FileConvert
             ref={fileInputRef}
             className="hidden" 
             onChange={handleFileSelect}
-            accept={`.${inputFormat},${MIME_TYPES[inputFormat.toLowerCase()] || ''}`}
+            accept={inputFormat.toLowerCase() === 'jfif' ? '.jfif' : `.${inputFormat},${MIME_TYPES[inputFormat.toLowerCase()] || ''}`}
             multiple 
           />
           <Button size="lg" className="rounded-full px-8" onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}>

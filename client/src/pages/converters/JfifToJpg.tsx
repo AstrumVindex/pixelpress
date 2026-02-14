@@ -11,6 +11,6 @@ export default function JfifToJpg() {
             <main className="pt-24 pb-20 px-4 md:px-6">
         <FileConverter inputFormat="jfif" outputFormat="jpg" seoKey="jfif-to-jpg" />
       </main>
-          </div>
+    </div>
   );
 }

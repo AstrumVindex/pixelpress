@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Helmet } from "react-helmet";
 import { CloudUpload, Zap, FileText, X, AlertCircle, Images, Download, ChevronDown } from 'lucide-react';
-import * as pdfjsLib from 'pdfjs-dist';
+import { pdfjsLib } from '@/lib/pdfWorker';
 import jsPDF from 'jspdf';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
@@ -10,11 +10,6 @@ import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
-
-// --- STABLE WORKER SETUP ---
-// We explicitly use version 3.11.174 to match the npm install recommended above.
-// This prevents the "fake worker" and "version mismatch" errors.
-pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js`;
 
 export default function PixelPressConverter() {
   const [file, setFile] = useState<File | null>(null);
