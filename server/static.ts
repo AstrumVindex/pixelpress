@@ -1,4 +1,4 @@
-import express, { type Express } from "express";
+import express, { type Express, type Request, type Response, type NextFunction } from "express";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -12,7 +12,7 @@ const getCurrentDir = () => {
 };
 
 export function serveStatic(app: Express) {
-  const distPath = path.resolve(getCurrentDir(), "public");
+  const distPath = path.resolve(getCurrentDir(), "..", "public");
   if (!fs.existsSync(distPath)) {
     throw new Error(
       `Could not find the build directory: ${distPath}, make sure to build the client first`,
@@ -20,7 +20,7 @@ export function serveStatic(app: Express) {
   }
 
   // Cache headers for assets
-  app.use((req, res, next) => {
+  app.use((req: Request, res: Response, next: NextFunction) => {
     // Cache static assets for 1 year
     if (req.path.match(/\.(js|css|webp|png|jpg|jpeg|gif|woff|woff2|ttf|eot|svg)$/)) {
       res.set("Cache-Control", "public, max-age=31536000, immutable");
@@ -37,12 +37,12 @@ export function serveStatic(app: Express) {
   });
 
   // Explicitly serve robots.txt and sitemap.xml
-  app.get("/robots.txt", (_req, res) => {
+  app.get("/robots.txt", (_req: Request, res: Response) => {
     res.set("Content-Type", "text/plain");
     res.sendFile(path.resolve(distPath, "robots.txt"));
   });
 
-  app.get("/sitemap.xml", (_req, res) => {
+  app.get("/sitemap.xml", (_req: Request, res: Response) => {
     res.set("Content-Type", "application/xml");
     res.sendFile(path.resolve(distPath, "sitemap.xml"));
   });
@@ -53,7 +53,7 @@ export function serveStatic(app: Express) {
   }));
 
   // fall through to index.html if the file doesn't exist
-  app.use("*", (_req, res) => {
+  app.use("*", (_req: Request, res: Response) => {
     res.sendFile(path.resolve(distPath, "index.html"));
   });
 }

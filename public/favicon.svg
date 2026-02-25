@@ -1,5 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
-  <rect width="32" height="32" fill="#f9d963"/>
-  <path d="M16 4 L10 14 L14 14 L8 28 L18 18 L14 18 L20 4 Z" fill="#000"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <!-- Background circle -->
+  <circle cx="100" cy="100" r="100" fill="#E8E4F3"/>
+  <!-- Lightning bolt -->
+  <path d="M 100 40 L 140 100 L 110 100 L 140 160 L 60 100 L 90 100 Z" fill="#5B3CB6" stroke="#4A2E94" stroke-width="2" stroke-linejoin="round"/>
 </svg></content>
 <parameter name="filePath">/workspaces/pixelpress/public/favicon.svg
