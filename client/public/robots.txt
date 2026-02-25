@@ -2,7 +2,7 @@ User-agent: *
 Allow: /
 Disallow: /api/
 
-Sitemap: https://pixelpress.replit.app/sitemap.xml
+Sitemap: https://pixelpresss.xyz/sitemap.xml
 
 Allow: /compress-png
 Allow: /compress-jpeg
