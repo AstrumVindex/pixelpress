@@ -12,7 +12,7 @@ const getCurrentDir = () => {
 };
 
 export function serveStatic(app: Express) {
-  const distPath = path.resolve(getCurrentDir(), "..", "public");
+  const distPath = path.resolve(getCurrentDir(), "..", "dist");
   if (!fs.existsSync(distPath)) {
     throw new Error(
       `Could not find the build directory: ${distPath}, make sure to build the client first`,

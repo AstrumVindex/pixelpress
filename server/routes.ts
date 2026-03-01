@@ -17,11 +17,11 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
-  // Serve sitemap.xml and robots.txt from public folder
-  const publicPath = path.resolve(getCurrentDir(), "..", "public");
+  // Serve sitemap.xml and robots.txt from dist folder (built output)
+  const distPath = path.resolve(getCurrentDir(), "..", "dist");
   
   app.get("/sitemap.xml", (_req, res) => {
-    const filePath = path.join(publicPath, "sitemap.xml");
+    const filePath = path.join(distPath, "sitemap.xml");
     if (fs.existsSync(filePath)) {
       res.set("Content-Type", "application/xml");
       res.sendFile(filePath);
@@ -31,7 +31,7 @@ export async function registerRoutes(
   });
 
   app.get("/robots.txt", (_req, res) => {
-    const filePath = path.join(publicPath, "robots.txt");
+    const filePath = path.join(distPath, "robots.txt");
     if (fs.existsSync(filePath)) {
       res.set("Content-Type", "text/plain");
       res.sendFile(filePath);
@@ -41,7 +41,7 @@ export async function registerRoutes(
   });
 
   app.get("/manifest.json", (_req, res) => {
-    const filePath = path.join(publicPath, "manifest.json");
+    const filePath = path.join(distPath, "manifest.json");
     if (fs.existsSync(filePath)) {
       res.set("Content-Type", "application/json");
       res.sendFile(filePath);
