@@ -3,10 +3,3 @@ Allow: /
 Disallow: /api/
 
 Sitemap: https://pixelpresss.xyz/sitemap.xml
-
-Allow: /compress-png
-Allow: /compress-jpeg
-Allow: /compress-webp
-Allow: /resize-image
-Allow: /privacy
-Allow: /terms
