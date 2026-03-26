@@ -10,6 +10,7 @@ interface UploadZoneProps {
   accept?: Accept;
   allowedFormats?: string;
   errorMessage?: string;
+  multiple?: boolean;
 }
 
 export const UploadZone = memo(function UploadZone({ 
@@ -18,7 +19,8 @@ export const UploadZone = memo(function UploadZone({
     'image/*': ['.png', '.jpg', '.jpeg', '.webp']
   },
   allowedFormats = "JPG, PNG, WEBP",
-  errorMessage = "Please upload a valid image file"
+  errorMessage = "Please upload a valid image file",
+  multiple = true
 }: UploadZoneProps) {
   const { toast } = useToast();
 
@@ -33,14 +35,14 @@ export const UploadZone = memo(function UploadZone({
     }
 
     if (acceptedFiles.length > 0) {
-      onFileSelect(acceptedFiles);
+      onFileSelect(multiple ? acceptedFiles : [acceptedFiles[0]]);
     }
-  }, [onFileSelect, toast, errorMessage]);
+  }, [onFileSelect, toast, errorMessage, multiple]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept,
-    multiple: true
+    multiple
   });
 
   return (
@@ -82,13 +84,13 @@ export const UploadZone = memo(function UploadZone({
 
             <div className="space-y-2">
               <h2 className="text-2xl font-display font-semibold text-foreground">
-                {isDragActive ? "Drop it like it's hot!" : "Upload images"}
+                {isDragActive ? "Drop it like it's hot!" : (multiple ? "Upload images" : "Upload an image")}
               </h2>
               <p className="text-muted-foreground text-base max-w-sm mx-auto">
-                Drag and drop your images here, or click to browse.
+                Drag and drop your {multiple ? "images" : "image"} here, or click to browse.
                 <br />
                 <span className="text-xs uppercase tracking-wider font-medium opacity-60 mt-2 block">
-                  Supports {allowedFormats} - Multiple files allowed
+                  Supports {allowedFormats} - {multiple ? "Multiple files allowed" : "Single file only"}
                 </span>
                 <span className="text-xs font-semibold text-primary opacity-80 mt-1 block">
                   Max 50 MB total
@@ -102,11 +104,12 @@ export const UploadZone = memo(function UploadZone({
           </div>
         </div>
 
-        <div className="mt-8 grid grid-cols-3 gap-4 text-center">
+        <div className="mt-8 mx-auto grid w-full max-w-md gap-4 text-center sm:max-w-md sm:grid-cols-2 lg:max-w-xl lg:grid-cols-3">
           {[
             { label: "No Uploads", desc: "100% Client-side" },
-            { label: "Bulk Upload", desc: "Multiple files at once" },
-            { label: "Mobile Safe", desc: "Sequential processing" }
+            ...(multiple ? [{ label: "Bulk Upload", desc: "Multiple files at once" }] : []),
+            { label: "Mobile Safe", desc: "Sequential processing" },
+            { label: "Free to Use", desc: "100% free to use" }
           ].map((item, i) => (
             <div key={i} className="bg-white/40 p-3 rounded-xl border border-white/20">
               <div className="font-semibold text-sm text-foreground">{item.label}</div>

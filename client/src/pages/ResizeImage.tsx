@@ -125,7 +125,7 @@ export default function ResizeImage() {
             
             {!originalFile && (
               <div className="mt-8">
-                <UploadZone onFileSelect={(files) => files[0] && handleFileSelect(files[0])} />
+                <UploadZone multiple={false} onFileSelect={(files) => files[0] && handleFileSelect(files[0])} />
               </div>
             )}
 
