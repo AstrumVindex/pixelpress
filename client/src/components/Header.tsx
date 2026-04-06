@@ -35,7 +35,7 @@ export const Header = memo(function Header() {
         
         {/* Desktop Navigation */}
         <nav className="hidden lg:flex items-center gap-3 xl:gap-4 glass-panel px-4 xl:px-6 py-2 rounded-full text-xs xl:text-sm font-medium text-muted-foreground">
-          <DropdownMenu>
+          <DropdownMenu modal={false}>
             <DropdownMenuTrigger className="flex items-center gap-1 hover:text-foreground transition-colors outline-none whitespace-nowrap">
               Compress Image <ChevronDown className="w-4 h-4" />
             </DropdownMenuTrigger>
@@ -55,7 +55,7 @@ export const Header = memo(function Header() {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <DropdownMenu>
+          <DropdownMenu modal={false}>
             <DropdownMenuTrigger className="flex items-center gap-1 hover:text-foreground transition-colors outline-none whitespace-nowrap">
               Format Converter <ChevronDown className="w-4 h-4" />
             </DropdownMenuTrigger>
