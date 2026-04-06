@@ -73,6 +73,15 @@ export const Header = memo(function Header() {
                 <Link href="/jpg-to-pdf" className="cursor-pointer">JPG → PDF</Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
+                <Link href="/jfif-to-jpg" className="cursor-pointer">JFIF → JPG</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/word-to-excel" className="cursor-pointer">Word → Excel</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/excel-to-word" className="cursor-pointer">Excel → Word</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
                 <Link href="/all-converters" className="cursor-pointer font-semibold">All Converters</Link>
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -118,6 +127,9 @@ export const Header = memo(function Header() {
                   <Link href="/jpg-to-png" onClick={() => setIsOpen(false)} className="text-lg font-medium hover:text-primary transition-colors">JPG → PNG</Link>
                   <Link href="/pdf-to-jpg" onClick={() => setIsOpen(false)} className="text-lg font-medium hover:text-primary transition-colors">PDF → JPG</Link>
                   <Link href="/jpg-to-pdf" onClick={() => setIsOpen(false)} className="text-lg font-medium hover:text-primary transition-colors">JPG → PDF</Link>
+                  <Link href="/jfif-to-jpg" onClick={() => setIsOpen(false)} className="text-lg font-medium hover:text-primary transition-colors">JFIF → JPG</Link>
+                  <Link href="/word-to-excel" onClick={() => setIsOpen(false)} className="text-lg font-medium hover:text-primary transition-colors">Word → Excel</Link>
+                  <Link href="/excel-to-word" onClick={() => setIsOpen(false)} className="text-lg font-medium hover:text-primary transition-colors">Excel → Word</Link>
                   <Link href="/all-converters" onClick={() => setIsOpen(false)} className="text-lg font-medium hover:text-primary transition-colors">All Converters</Link>
                 </div>
                 <div className="flex flex-col gap-4">

@@ -1,6 +1,6 @@
 import { Helmet } from "react-helmet";
 import { Link } from "wouter";
-import { FileImage, FileText, ArrowRight } from "lucide-react";
+import { FileImage, FileText, FileSpreadsheet, ArrowRight } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { motion } from "framer-motion";
@@ -14,6 +14,8 @@ const tools = [
   { title: "WebP to PNG", link: "/webp-to-png", icon: FileImage, color: "text-teal-500", bg: "bg-teal-50 dark:bg-teal-900/20" },
   { title: "WebP to JPG", link: "/webp-to-jpg", icon: FileImage, color: "text-orange-500", bg: "bg-orange-50 dark:bg-orange-900/20" },
   { title: "JFIF to JPG", link: "/jfif-to-jpg", icon: FileImage, color: "text-pink-500", bg: "bg-pink-50 dark:bg-pink-900/20" },
+  { title: "Word to Excel", link: "/word-to-excel", icon: FileSpreadsheet, color: "text-emerald-500", bg: "bg-emerald-50 dark:bg-emerald-900/20" },
+  { title: "Excel to Word", link: "/excel-to-word", icon: FileSpreadsheet, color: "text-cyan-500", bg: "bg-cyan-50 dark:bg-cyan-900/20" },
 ];
 
 export default function AllConverters() {
