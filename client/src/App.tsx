@@ -28,6 +28,8 @@ const WebpToJpg = lazy(() => import("@/pages/converters/WebpToJpg"));
 const JfifToJpg = lazy(() => import("@/pages/converters/JfifToJpg"));
 const WordToExcel = lazy(() => import("@/pages/converters/WordToExcel"));
 const ExcelToWord = lazy(() => import("@/pages/converters/ExcelToWord"));
+const PdfToExcel = lazy(() => import("@/pages/converters/PdfToExcel"));
+const PdfToWord = lazy(() => import("@/pages/converters/PdfToWord"));
 const PrivacyPolicy = lazy(() => import("@/pages/PrivacyPolicy"));
 const TermsOfService = lazy(() => import("@/pages/TermsOfService"));
 const NotFound = lazy(() => import("@/pages/not-found"));
@@ -60,6 +62,8 @@ function Router() {
             <Route path="/jfif-to-jpg" component={JfifToJpg} />
             <Route path="/word-to-excel" component={WordToExcel} />
             <Route path="/excel-to-word" component={ExcelToWord} />
+            <Route path="/pdf-to-excel" component={PdfToExcel} />
+            <Route path="/pdf-to-word" component={PdfToWord} />
             <Route path="/privacy" component={PrivacyPolicy} />
             <Route path="/terms" component={TermsOfService} />
             <Route component={NotFound} />

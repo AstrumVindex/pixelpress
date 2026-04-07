@@ -7,7 +7,7 @@ import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import mammoth from 'mammoth';
 import * as XLSX from 'xlsx';
-import { Document, Packer, Paragraph, Table, TableRow, TableCell, WidthType, HeadingLevel } from 'docx';
+import { Document, Packer, Paragraph, Table, TableRow, TableCell, WidthType, HeadingLevel, TextRun, AlignmentType, ShadingType } from 'docx';
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -69,7 +69,7 @@ const faqs = [
   },
   {
     q: 'Which file types does the format converter support?',
-    a: 'The general converter currently supports PDF, JPG, JPEG, PNG, WebP, DOCX, and XLSX files.',
+    a: 'The general converter currently supports PDF, JPG, JPEG, PNG, WebP, DOCX, and XLSX files. You can also convert PDF directly to Excel or Word.',
   },
   {
     q: 'Can I convert PDF pages into separate images?',
@@ -82,6 +82,10 @@ const faqs = [
   {
     q: 'Will transparent PNG or WebP files convert correctly to JPG?',
     a: 'Yes. When converting to JPG, PixelPress adds a white background so transparent regions render cleanly.',
+  },
+  {
+    q: 'Can I convert a PDF to Excel or Word?',
+    a: 'Yes. Upload a PDF and choose Excel Spreadsheet (.xlsx) or Word Document (.docx) as the output format. PixelPress extracts the text from each page and builds the file directly in your browser.',
   },
   {
     q: 'Do I need to install any software or sign up?',
@@ -248,6 +252,222 @@ export default function PixelPressConverter() {
     }
   };
 
+  const convertPdfToImageFormat = async (mimeType: string, ext: string) => {
+    if (!file) return;
+    const arrayBuffer = await file.arrayBuffer();
+    const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+    const pdf = await loadingTask.promise;
+    const totalPages = pdf.numPages;
+
+    const renderPage = async (pageNum: number): Promise<Blob | null> => {
+      setProgressTxt(`Rendering page ${pageNum}/${totalPages}...`);
+      const page = await pdf.getPage(pageNum);
+      const viewport = page.getViewport({ scale: 2 });
+      const canvas = document.createElement('canvas');
+      canvas.width = viewport.width;
+      canvas.height = viewport.height;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) throw new Error('Canvas context missing');
+      await page.render({ canvasContext: ctx, viewport, canvas }).promise;
+      return new Promise(resolve => canvas.toBlob(resolve, mimeType, 0.9));
+    };
+
+    if (totalPages === 1) {
+      const blob = await renderPage(1);
+      if (blob) setDownloadUrl(URL.createObjectURL(blob));
+      else throw new Error('Failed to render page.');
+    } else {
+      const zip = new JSZip();
+      for (let i = 1; i <= totalPages; i++) {
+        const blob = await renderPage(i);
+        if (blob) zip.file(`page-${String(i).padStart(2, '0')}.${ext}`, blob);
+      }
+      setProgressTxt('Compressing Zip...');
+      const zipContent = await zip.generateAsync({ type: 'blob' });
+      saveAs(zipContent, `${file.name.split('.')[0]}-images.zip`);
+      setIsZipDownloaded(true);
+    }
+  };
+
+  const convertPdfToExcel = async () => {
+    if (!file) return;
+    const arrayBuffer = await file.arrayBuffer();
+    const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+    const pdf = await loadingTask.promise;
+    const totalPages = pdf.numPages;
+
+    const wb = XLSX.utils.book_new();
+
+    for (let i = 1; i <= totalPages; i++) {
+      setProgressTxt(`Extracting page ${i}/${totalPages}...`);
+      const page = await pdf.getPage(i);
+      const textContent = await page.getTextContent();
+
+      const lines: string[] = [];
+      let currentLine = '';
+      let lastY: number | null = null;
+
+      (textContent.items as any[]).forEach((item: any) => {
+        const y = item.transform?.[5] ?? 0;
+        if (lastY !== null && Math.abs(y - lastY) > 2) {
+          if (currentLine.trim()) lines.push(currentLine.trim());
+          currentLine = item.str ?? '';
+        } else {
+          currentLine += item.str ?? '';
+        }
+        lastY = y;
+      });
+      if (currentLine.trim()) lines.push(currentLine.trim());
+
+      const data = lines.map(line => [line]);
+      const ws = XLSX.utils.aoa_to_sheet(data);
+      XLSX.utils.book_append_sheet(wb, ws, `Page ${i}`);
+    }
+
+    if (wb.SheetNames.length === 0) throw new Error('No text could be extracted from the PDF.');
+
+    const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+    const blob = new Blob([wbout], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    });
+    setDownloadUrl(URL.createObjectURL(blob));
+  };
+
+  const convertPdfToWord = async () => {
+    if (!file) return;
+    const arrayBuffer = await file.arrayBuffer();
+    const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+    const pdf = await loadingTask.promise;
+    const totalPages = pdf.numPages;
+    const allChildren: Paragraph[] = [];
+
+    for (let i = 1; i <= totalPages; i++) {
+      setProgressTxt(`Extracting page ${i}/${totalPages}...`);
+      const page = await pdf.getPage(i);
+      const viewport = page.getViewport({ scale: 1 });
+      const pageWidth = viewport.width;
+      const textContent = await page.getTextContent();
+      const pdfStyles: Record<string, any> = (textContent as any).styles || {};
+
+      // Group text items into lines by Y coordinate (tolerance ±3pt)
+      const lineMap = new Map<number, any[]>();
+      for (const rawItem of textContent.items) {
+        const item = rawItem as any;
+        if (typeof item.str !== 'string') continue;
+        const y: number = item.transform[5];
+        let placed = false;
+        const lineMapEntries = Array.from(lineMap.entries());
+      for (let li = 0; li < lineMapEntries.length; li++) {
+        const [ky] = lineMapEntries[li];
+          if (Math.abs(ky - y) <= 3) {
+            lineMap.get(ky)!.push(item);
+            placed = true;
+            break;
+          }
+        }
+        if (!placed) lineMap.set(y, [item]);
+      }
+
+      // Sort lines top-to-bottom (PDF Y increases upward → sort descending)
+      const sortedLines = Array.from(lineMap.entries()).sort(([a], [b]) => b - a);
+
+      // Determine left margin from all x positions
+      const allX = sortedLines
+        .flatMap(([, items]) => items.map((it: any) => it.transform[4] as number))
+        .filter(x => x > 0);
+      const leftMargin = allX.length ? Math.min(...allX) : 50;
+
+      // Compute median body font size so we can tell names (large) from section headers
+      const allFontSizes = sortedLines
+        .flatMap(([, items]) =>
+          items.map((it: any) => Math.abs(it.transform[0]) || Math.abs(it.transform[3]))
+        )
+        .filter((fs: number) => fs > 3);
+      allFontSizes.sort((a: number, b: number) => a - b);
+      const medianFs: number =
+        allFontSizes.length ? allFontSizes[Math.floor(allFontSizes.length / 2)] : 11;
+
+      if (i > 1) allChildren.push(new Paragraph({ text: '' }));
+
+      const getIsBold = (item: any): boolean => {
+        const fn = (item.fontName || '') as string;
+        const ff = ((pdfStyles[fn]?.fontFamily || '') as string).toLowerCase();
+        return ff.includes('bold') || fn.toLowerCase().includes('bold');
+      };
+
+      for (const [, lineItems] of sortedLines) {
+        lineItems.sort((a: any, b: any) => a.transform[4] - b.transform[4]);
+        const lineText = lineItems.map((it: any) => it.str as string).join('').trim();
+        if (!lineText) continue;
+
+        const firstItem = lineItems[0] as any;
+        const xPos: number = firstItem.transform[4];
+
+        const lineFontSizes = lineItems.map(
+          (it: any) => Math.abs(it.transform[0]) || Math.abs(it.transform[3]) || medianFs
+        );
+        const avgLineFs: number =
+          lineFontSizes.reduce((s: number, v: number) => s + v, 0) / lineFontSizes.length;
+
+        const isCentered = xPos > leftMargin + pageWidth * 0.15;
+        const isAllCaps =
+          lineText === lineText.toUpperCase() && lineText.replace(/\W/g, '').length > 2;
+        const isLargeText = avgLineFs > medianFs * 1.25;
+        const isSectionHeader = isAllCaps && !isCentered && !isLargeText;
+
+        const bulletChars = ['•', '·', '▪', '-', '*'];
+        const startsWithBullet = bulletChars.some(b => lineText.startsWith(b));
+        const displayItems = startsWithBullet
+          ? lineItems.map((it: any) => ({ ...it, str: (it.str as string).replace(/^[•·▪\-\*]\s*/, '') }))
+          : lineItems;
+
+        const runs = displayItems
+          .filter((item: any) => typeof item.str === 'string' && (item.str as string).length > 0)
+          .map((item: any) => {
+            const fs = Math.abs(item.transform[0]) || Math.abs(item.transform[3]) || 12;
+            const bold = getIsBold(item) || isSectionHeader || isLargeText;
+            return new TextRun({
+              text: item.str,
+              bold,
+              size: Math.max(16, Math.round(fs * 1.8)),
+            });
+          });
+
+        if (runs.length === 0) continue;
+
+        const indentLeft =
+          !isCentered && !isSectionHeader && !startsWithBullet && xPos > leftMargin + 20
+            ? Math.round((xPos - leftMargin) * 14)
+            : undefined;
+
+        allChildren.push(
+          new Paragraph({
+            children: runs,
+            alignment: isCentered ? AlignmentType.CENTER : AlignmentType.LEFT,
+            shading: isSectionHeader
+              ? { type: ShadingType.CLEAR, fill: 'E8E8E8', color: 'auto' }
+              : undefined,
+            spacing: {
+              before: isSectionHeader ? 140 : 40,
+              after: isSectionHeader ? 80 : 40,
+            },
+            indent:
+              startsWithBullet
+                ? { left: 360, hanging: 360 }
+                : indentLeft !== undefined
+                ? { left: indentLeft }
+                : undefined,
+            bullet: startsWithBullet ? { level: 0 } : undefined,
+          })
+        );
+      }
+    }
+
+    const doc = new Document({ sections: [{ children: allChildren }] });
+    const blob = await Packer.toBlob(doc);
+    setDownloadUrl(URL.createObjectURL(blob));
+  };
+
   const convertWordToExcel = async () => {
     if (!file) return;
     setProgressTxt('Reading Word document...');
@@ -369,7 +589,9 @@ export default function PixelPressConverter() {
       } else if (isXlsxFile(file) && targetFormat === 'docx') {
         await convertExcelToWord();
       } else if (file.type === 'application/pdf') {
-        if (targetFormat === 'jpg') await convertPdfToImages();
+        if (targetFormat === 'jpg') await convertPdfToImages();        else if (targetFormat === 'png') await convertPdfToImageFormat('image/png', 'png');
+        else if (targetFormat === 'webp') await convertPdfToImageFormat('image/webp', 'webp');        else if (targetFormat === 'xlsx') await convertPdfToExcel();
+        else if (targetFormat === 'docx') await convertPdfToWord();
       } else if (file.type.startsWith('image/')) {
         if (targetFormat === 'pdf') await convertImageToPdf();
         else if (['jpeg', 'png', 'webp'].includes(targetFormat)) await convertImageToImage(targetFormat);
@@ -390,7 +612,13 @@ export default function PixelPressConverter() {
     if (isDocxFile(file)) return [{ val: 'xlsx', label: 'Excel Spreadsheet (.xlsx)' }];
     if (isXlsxFile(file)) return [{ val: 'docx', label: 'Word Document (.docx)' }];
     if (file.type === 'application/pdf') {
-        return [{ val: 'jpg', label: 'JPG Image(s)' }];
+        return [
+          { val: 'jpg', label: 'JPG Image(s)' },
+          { val: 'png', label: 'PNG Image(s)' },
+          { val: 'webp', label: 'WebP Image(s)' },
+          { val: 'xlsx', label: 'Excel Spreadsheet (.xlsx)' },
+          { val: 'docx', label: 'Word Document (.docx)' },
+        ];
     }
     if (file.type.startsWith('image/')) {
         return [
@@ -415,7 +643,7 @@ export default function PixelPressConverter() {
         />
         <meta
           name="keywords"
-          content="format converter, PDF to JPG, JPG to PDF, image converter, Word to Excel, Excel to Word, secure online converter, free file converter"
+          content="format converter, PDF to JPG, PDF to Excel, PDF to Word, JPG to PDF, image converter, Word to Excel, Excel to Word, secure online converter, free file converter"
         />
       </Helmet>
       <Header />
